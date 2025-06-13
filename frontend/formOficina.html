@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Agregar Oficinas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Oficina - Sistema de Oficinas</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
           crossorigin="anonymous">
@@ -11,255 +13,299 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
-    <script src="js/oficina.js"></script>
-    <script src="js/auth.js"></script>
-    <script>verificarAutenticacion();</script>
 
     <!-- Google Maps API -->
     <script async defer
             src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAyIxLJJdz1PvJmpwZCMV85VhjHLYeKoO0&libraries=places&callback=initMap">
     </script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", async function () {
-            await obtenerUbicacionActual();
+    <!-- Scripts de autenticación y funcionalidad -->
+    <script src="js/authGuard.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/oficina.js"></script>
 
-            const id = localStorage.getItem("editIndex");
-            if (id) {
-                try {
-                    const token = localStorage.getItem("jwt");
-                    const respuesta = await fetch(`http://localhost:8080/api/oficinas/${id}`, {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
+    <style>
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
 
-                    if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
+        .card {
+            border: none;
+            box-shadow: 0 0 25px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            overflow: hidden;
+        }
 
-                    const oficina = await respuesta.json();
-                    document.getElementById("nombre").value = oficina.nombre;
-                    document.getElementById("ubicacion").value = oficina.ubicacion;
-                    document.getElementById("latitud").value = oficina.latitud || '';
-                    document.getElementById("longitud").value = oficina.longitud || '';
-                    document.getElementById("capacidadMaxima").value = oficina.capacidadMaxima || '';
+        .card-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            color: white;
+            padding: 1.5rem;
+            border-bottom: none;
+        }
 
-                    if (oficina.latitud && oficina.longitud) {
-                        actualizarMapa(oficina.latitud, oficina.longitud);
-                    }
-                } catch (error) {
-                    console.error('Error al cargar oficina:', error);
-                    alert('No se pudo cargar la información de la oficina.');
-                }
+        .form-control, .form-select {
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .map-container {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+
+        .location-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .coordinates-display {
+            background: rgba(13, 110, 253, 0.1);
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading-spinner {
+            display: none;
+        }
+
+        .loading .loading-spinner {
+            display: inline-block;
+        }
+
+        .loading .btn-text {
+            display: none;
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+        }
+
+        .floating-help {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .help-tooltip {
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+
+        .location-status {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .status-success {
+            background: rgba(25, 135, 84, 0.1);
+            border: 1px solid rgba(25, 135, 84, 0.3);
+            color: #0f5132;
+        }
+
+        .status-warning {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            color: #664d03;
+        }
+
+        .status-error {
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            color: #58151c;
+        }
+
+        .capacity-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                margin: 1rem;
+                border-radius: 15px;
             }
-        });
 
-        async function obtenerUbicacionActual() {
-            console.log('Intentando obtener ubicación...'); // ← Debug
+            #map {
+                height: 300px;
+            }
 
-            if (navigator.geolocation) {
-                console.log('Geolocalización disponible'); // ← Debug
-
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        console.log('¡Ubicación obtenida exitosamente!'); // ← Debug
-                        console.log('Latitud:', position.coords.latitude);
-                        console.log('Longitud:', position.coords.longitude);
-                        console.log('Precisión:', position.coords.accuracy, 'metros');
-
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-
-                        document.getElementById("latitud").value = lat.toFixed(6);
-                        document.getElementById("longitud").value = lng.toFixed(6);
-
-                        actualizarMapa(lat, lng);
-                        obtenerDireccionDesdeCoordenadas(lat, lng);
-                    },
-                    function(error) {
-                        console.error('ERROR de geolocalización:', error);
-                        console.error('Código de error:', error.code);
-                        console.error('Mensaje:', error.message);
-
-
-                        switch(error.code) {
-                            case error.PERMISSION_DENIED:
-                                alert("Permiso de ubicación denegado por el usuario.");
-                                break;
-                            case error.POSITION_UNAVAILABLE:
-                                alert("Información de ubicación no disponible.");
-                                break;
-                            case error.TIMEOUT:
-                                alert("Tiempo de espera agotado para obtener ubicación.");
-                                break;
-                            default:
-                                alert("Error desconocido al obtener ubicación.");
-                                break;
-                        }
-                    },
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 15000,
-                        maximumAge: 0
-                    }
-                );
-            } else {
-                console.error('Geolocalización NO disponible');
-                alert('La geolocalización no es soportada por este navegador.');
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
             }
         }
 
-        let map;
-        let marker;
-
-        function initMap() {
-
-            const defaultLocation = { lat: 9.9281, lng: -84.0907 }; // San José, Costa Rica
-
-            map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 15,
-                center: defaultLocation,
-            });
-
-            marker = new google.maps.Marker({
-                position: defaultLocation,
-                map: map,
-                draggable: true,
-                title: 'Ubicación de la oficina'
-            });
-
-            marker.addListener('dragend', function() {
-                const position = marker.getPosition();
-                document.getElementById("latitud").value = position.lat().toFixed(6);
-                document.getElementById("longitud").value = position.lng().toFixed(6);
-            });
-
-            map.addListener('click', function(event) {
-                const lat = event.latLng.lat();
-                const lng = event.latLng.lng();
-
-                marker.setPosition(event.latLng);
-                document.getElementById("latitud").value = lat.toFixed(6);
-                document.getElementById("longitud").value = lng.toFixed(6);
-            });
+        /* Animaciones */
+        .pulse {
+            animation: pulse 2s infinite;
         }
 
-        function actualizarMapa(lat, lng) {
-            if (map && marker) {
-                const position = { lat: parseFloat(lat), lng: parseFloat(lng) };
-                map.setCenter(position);
-                marker.setPosition(position);
-            }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
-        function obtenerDireccionDesdeCoordenadas(lat, lng) {
-            const geocoder = new google.maps.Geocoder();
-            const latlng = { lat: parseFloat(lat), lng: parseFloat(lng) };
-
-            geocoder.geocode({ location: latlng }, (results, status) => {
-                if (status === "OK") {
-                    if (results[0]) {
-                        document.getElementById("ubicacion").value = results[0].formatted_address;
-                    }
-                }
-            });
+        .shake {
+            animation: shake 0.5s;
         }
 
-        function onCoordenadasChange() {
-            const lat = document.getElementById("latitud").value;
-            const lng = document.getElementById("longitud").value;
-
-            if (lat && lng) {
-                actualizarMapa(lat, lng);
-            }
+        @keyframes shake {
+            0%, 20%, 40%, 60%, 80% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
         }
-    </script>
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<!-- Navegación -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container-fluid">
         <a class="navbar-brand" href="personaIndex.html">
-            <i class="bi bi-building"></i> Sistema Oficinas
+            <i class="bi bi-building me-2"></i>Sistema de Oficinas
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="personasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-people"></i> Personas
+                <!-- Personas -->
+                <li class="nav-item dropdown" id="personasDropdownContainer">
+                    <a class="nav-link dropdown-toggle" href="#" id="personasDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-people me-1"></i>Personas
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="personasDropdown">
                         <li><a class="dropdown-item" href="personaIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Personas
+                            <i class="bi bi-list-ul me-2"></i>Lista de Personas
                         </a></li>
                         <li><a class="dropdown-item" href="formPersona.html">
-                            <i class="bi bi-person-plus"></i> Agregar Persona
+                            <i class="bi bi-person-plus me-2"></i>Agregar Persona
                         </a></li>
                     </ul>
                 </li>
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="oficinasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-building"></i> Oficinas
+                <!-- Oficinas -->
+                <li class="nav-item dropdown" id="oficinasDropdownContainer">
+                    <a class="nav-link dropdown-toggle active" href="#" id="oficinasDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-building me-1"></i>Oficinas
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="oficinasDropdown">
                         <li><a class="dropdown-item" href="oficinaIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Oficinas
+                            <i class="bi bi-list-ul me-2"></i>Lista de Oficinas
                         </a></li>
-                        <li><a class="dropdown-item" href="formOficina.html">
-                            <i class="bi bi-building-add"></i> Agregar Oficina
+                        <li><a class="dropdown-item active" href="formOficina.html">
+                            <i class="bi bi-building-add me-2"></i>Agregar Oficina
                         </a></li>
                     </ul>
                 </li>
 
-                <!-- *** NUEVA SECCIÓN DE REGISTROS *** -->
+                <!-- Registros -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="registrosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-clock-history"></i> Registros
+                    <a class="nav-link dropdown-toggle" href="#" id="registrosDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-clock-history me-1"></i>Registros
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="registrosDropdown">
                         <li><a class="dropdown-item" href="registrosIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Registros
+                            <i class="bi bi-list-ul me-2"></i>Lista de Registros
                         </a></li>
                         <li><a class="dropdown-item" href="formRegistro.html">
-                            <i class="bi bi-plus-circle"></i> Nuevo Registro
-                        </a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="mostrarEstadisticasRapidas()">
-                            <i class="bi bi-bar-chart"></i> Estadísticas
+                            <i class="bi bi-plus-circle me-2"></i>Nuevo Registro
                         </a></li>
                     </ul>
                 </li>
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bar-chart"></i> Reportes y Estadísticas
+                <!-- Reportes -->
+                <li class="nav-item dropdown" id="reportesDropdownContainer">
+                    <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bar-chart me-1"></i>Reportes
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
                         <li><a class="dropdown-item" href="reportesIndex.html">
-                            <i class="bi bi-graph-up"></i> Reportes y Estadísticas
+                            <i class="bi bi-graph-up me-2"></i>Dashboard y Estadísticas
                         </a></li>
                     </ul>
                 </li>
             </ul>
 
+            <!-- Usuario -->
             <ul class="navbar-nav">
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="usuarioDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle"></i> <span id="nombreUsuario">Usuario</span>
+                    <a class="nav-link dropdown-toggle user-info" href="#" id="usuarioDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-1"></i>
+                        <span id="nombreUsuario">Usuario</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="usuarioDropdown">
                         <li><h6 class="dropdown-header">
+                            <i class="bi bi-shield-check me-2"></i>
                             <span id="rolUsuario">Rol</span>
                         </h6></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="logout()">
-                            <i class="bi bi-door-closed text-danger"></i> Cerrar Sesión
+                        <li><a class="dropdown-item text-danger" href="#" onclick="logout()">
+                            <i class="bi bi-door-closed me-2"></i>Cerrar Sesión
                         </a></li>
                     </ul>
                 </li>
@@ -268,8 +314,281 @@
     </div>
 </nav>
 
+<!-- Contenido Principal -->
+<div class="container mt-4 fade-in">
+    <!-- Encabezado -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-6 fw-bold text-primary mb-2">
+                        <i class="bi bi-building-add me-3"></i>
+                        <span id="tituloFormulario">Agregar Nueva Oficina</span>
+                    </h1>
+                    <p class="text-muted mb-0">Complete la información para registrar una nueva oficina</p>
+                </div>
+                <div class="d-none d-md-block">
+                    <a href="oficinaIndex.html" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Volver a Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado de ubicación -->
+    <div id="locationStatus" class="location-status status-warning" style="display: none;">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-info-circle me-2"></i>
+            <span id="locationStatusText">Detectando ubicación...</span>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="row">
+        <!-- Formulario de datos -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil-square me-2"></i>Información de la Oficina
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form class="needs-validation" novalidate onsubmit="guardarOficina(event)" id="formOficina">
+                        <div class="mb-4">
+                            <label for="nombre" class="form-label">
+                                <i class="bi bi-building text-primary me-2"></i>Nombre de la Oficina
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="nombre" class="form-control" required
+                                   placeholder="Ej: Oficina Central San José">
+                            <div class="invalid-feedback">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                El nombre de la oficina es obligatorio.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="ubicacion" class="form-label">
+                                <i class="bi bi-geo-alt text-primary me-2"></i>Ubicación (Descripción)
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="ubicacion" class="form-control" required
+                                   placeholder="Dirección o descripción de la ubicación">
+                            <div class="invalid-feedback">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                La descripción de la ubicación es obligatoria.
+                            </div>
+                            <div class="form-text">
+                                <i class="bi bi-lightbulb text-warning me-1"></i>
+                                Se completará automáticamente con la ubicación GPS
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="latitud" class="form-label">
+                                    <i class="bi bi-geo text-info me-2"></i>Latitud
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" step="any" id="latitud" class="form-control"
+                                       onchange="onCoordenadasChange()" required
+                                       placeholder="Ej: 9.928069">
+                                <div class="invalid-feedback">
+                                    La latitud es obligatoria.
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="longitud" class="form-label">
+                                    <i class="bi bi-geo text-info me-2"></i>Longitud
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" step="any" id="longitud" class="form-control"
+                                       onchange="onCoordenadasChange()" required
+                                       placeholder="Ej: -84.090725">
+                                <div class="invalid-feedback">
+                                    La longitud es obligatoria.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="capacidadMaxima" class="form-label">
+                                <i class="bi bi-people text-success me-2"></i>Capacidad Máxima de Personas
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" id="capacidadMaxima" class="form-control" min="1" required
+                                   placeholder="Número máximo de personas">
+                            <div class="invalid-feedback">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                La capacidad máxima es obligatoria y debe ser mayor a 0.
+                            </div>
+                        </div>
+
+                        <!-- Botón para obtener ubicación -->
+                        <div class="mb-4">
+                            <button type="button" class="btn btn-info w-100" onclick="obtenerUbicacionActual()" id="btnUbicacion">
+                                <span class="loading-spinner spinner-border spinner-border-sm me-2" role="status"></span>
+                                <span class="btn-text">
+                                        <i class="bi bi-geo-alt me-2"></i>Obtener Mi Ubicación Actual
+                                    </span>
+                            </button>
+                            <div class="form-text text-center">
+                                <i class="bi bi-shield-check text-success me-1"></i>
+                                Se solicitará permiso para acceder a tu ubicación
+                            </div>
+                        </div>
+
+                        <!-- Información de capacidad -->
+                        <div class="capacity-info">
+                            <h6 class="mb-2">
+                                <i class="bi bi-info-circle me-2"></i>Información de Capacidad
+                            </h6>
+                            <p class="mb-0 small">
+                                La capacidad máxima será utilizada para controlar el número de personas
+                                que pueden ingresar simultáneamente a la oficina.
+                            </p>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary flex-fill" id="btnGuardar">
+                                <span class="loading-spinner spinner-border spinner-border-sm me-2" role="status"></span>
+                                <span class="btn-text">
+                                        <i class="bi bi-check-circle me-2"></i>Guardar Oficina
+                                    </span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="cancelarFormulario()">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mapa y coordenadas -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-map me-2"></i>Ubicación en el Mapa
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="map-container">
+                        <div id="map"></div>
+                    </div>
+
+                    <div class="location-info">
+                        <h6>
+                            <i class="bi bi-crosshair text-primary me-2"></i>Coordenadas Actuales
+                        </h6>
+                        <div class="coordinates-display" id="coordinatesDisplay">
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>Latitud:</strong><br>
+                                    <span id="displayLatitud">--</span>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Longitud:</strong><br>
+                                    <span id="displayLongitud">--</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="bi bi-hand-index me-1"></i>
+                                <strong>Instrucciones:</strong> Haz clic en el mapa o arrastra el marcador para cambiar la ubicación.
+                                También puedes editar las coordenadas manualmente.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ayuda flotante -->
+<div class="floating-help">
+    <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="left"
+            title="¿Necesitas ayuda? Haz clic aquí" onclick="mostrarAyuda()">
+        <i class="bi bi-question-circle"></i>
+    </button>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white-50 text-center py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-1">
+                    <i class="bi bi-building me-2"></i>
+                    <strong>Sistema de Gestión de Oficinas</strong>
+                </p>
+                <small>Formulario de Registro de Oficinas</small>
+            </div>
+            <div class="col-md-6">
+                <small>
+                    &copy; 2025 Programación IV - Universidad Nacional de Costa Rica
+                    <br>
+                    <i class="bi bi-geo-alt me-1"></i>Con integración de Google Maps
+                </small>
+            </div>
+        </div>
+    </div>
+</footer>
+
 <script>
+    // Variables globales específicas del formulario
+    let isEditMode = false;
+    let oficinaCargada = null;
+
+    // Inicialización de la página
     document.addEventListener("DOMContentLoaded", function() {
+        // Verificar autenticación
+        verificarAutenticacion().then(isAuth => {
+            if (!isAuth) return;
+
+            // Verificar permisos
+            verificarPermisos();
+
+            // Mostrar información del usuario
+            mostrarInfoUsuario();
+
+            // Inicializar tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Detectar modo de edición
+            detectarModoEdicion();
+
+            console.log('✅ Formulario de oficina inicializado correctamente');
+        });
+    });
+
+    // Función para verificar permisos
+    function verificarPermisos() {
+        const role = localStorage.getItem("role");
+
+        if (role !== "ROLE_ADMINISTRADOR") {
+            mostrarError("No tienes permisos para crear o editar oficinas.");
+            setTimeout(() => {
+                window.location.href = "oficinaIndex.html";
+            }, 3000);
+            return false;
+        }
+
+        return true;
+    }
+
+    // Función para mostrar información del usuario
+    function mostrarInfoUsuario() {
         const username = localStorage.getItem("username");
         const role = localStorage.getItem("role");
 
@@ -278,111 +597,279 @@
         }
 
         if (role) {
-            let roleText = "";
-            switch(role) {
-                case "ROLE_ADMINISTRADOR":
-                    roleText = "Administrador";
-                    break;
-                case "ROLE_REGISTRADOR":
-                    roleText = "Registrador";
-                    break;
-                case "ROLE_VISOR":
-                    roleText = "Visor";
-                    break;
-                default:
-                    roleText = role.replace("ROLE_", "");
+            let roleText = "Administrador";
+            let roleIcon = "👑";
+            document.getElementById("rolUsuario").innerHTML = `${roleIcon} ${roleText}`;
+        }
+    }
+
+    // Función para detectar modo de edición
+    function detectarModoEdicion() {
+        const editIndex = localStorage.getItem("editIndex");
+
+        if (editIndex) {
+            isEditMode = true;
+            document.getElementById("tituloFormulario").textContent = "Editar Oficina";
+            document.querySelector(".card-header p").textContent = "Modifica la información de la oficina";
+            document.getElementById("btnGuardar").innerHTML = `
+                    <span class="loading-spinner spinner-border spinner-border-sm me-2" role="status"></span>
+                    <span class="btn-text">
+                        <i class="bi bi-check-circle me-2"></i>Actualizar Oficina
+                    </span>
+                `;
+
+            // Cargar datos de la oficina
+            cargarDatosOficina(editIndex);
+        }
+    }
+
+    // Función para cargar datos de la oficina (modo edición)
+    async function cargarDatosOficina(id) {
+        try {
+            mostrarEstadoUbicacion("Cargando datos de la oficina...", "warning");
+
+            const response = await authorizedFetch(`http://localhost:8080/api/oficinas/${id}`);
+
+            if (!response || !response.ok) {
+                throw new Error('No se pudo cargar la oficina');
             }
-            document.getElementById("rolUsuario").textContent = roleText;
+
+            const oficina = await response.json();
+            oficinaCargada = oficina;
+
+            // Llenar formulario
+            document.getElementById("nombre").value = oficina.nombre || '';
+            document.getElementById("ubicacion").value = oficina.ubicacion || '';
+            document.getElementById("latitud").value = oficina.latitud || '';
+            document.getElementById("longitud").value = oficina.longitud || '';
+            document.getElementById("capacidadMaxima").value = oficina.capacidadMaxima || '';
+
+            // Actualizar display de coordenadas
+            actualizarDisplayCoordenadas(oficina.latitud, oficina.longitud);
+
+            // Actualizar mapa si hay coordenadas
+            if (oficina.latitud && oficina.longitud) {
+                actualizarMapa(oficina.latitud, oficina.longitud);
+            }
+
+            mostrarExito("Datos de la oficina cargados correctamente");
+
+        } catch (error) {
+            console.error('Error al cargar oficina:', error);
+            mostrarError("No se pudo cargar la información de la oficina.");
+        }
+    }
+
+    // Función para mostrar estado de ubicación
+    function mostrarEstadoUbicacion(mensaje, tipo) {
+        const statusDiv = document.getElementById('locationStatus');
+        const statusText = document.getElementById('locationStatusText');
+
+        statusDiv.className = `location-status status-${tipo}`;
+        statusText.textContent = mensaje;
+        statusDiv.style.display = 'block';
+
+        // Auto-ocultar después de 5 segundos para mensajes de éxito
+        if (tipo === 'success' || tipo === 'error') {
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+    }
+
+    // Función para actualizar display de coordenadas
+    function actualizarDisplayCoordenadas(lat, lng) {
+        const displayLat = document.getElementById('displayLatitud');
+        const displayLng = document.getElementById('displayLongitud');
+
+        if (lat && lng) {
+            displayLat.textContent = parseFloat(lat).toFixed(6);
+            displayLng.textContent = parseFloat(lng).toFixed(6);
+        } else {
+            displayLat.textContent = '--';
+            displayLng.textContent = '--';
+        }
+    }
+
+    // Sobrescribir la función onCoordenadasChange para actualizar el display
+    function onCoordenadasChange() {
+        const lat = document.getElementById("latitud").value;
+        const lng = document.getElementById("longitud").value;
+
+        if (lat && lng) {
+            actualizarMapa(lat, lng);
+            actualizarDisplayCoordenadas(lat, lng);
+        }
+    }
+
+    async function obtenerUbicacionActual() {
+        const btn = document.getElementById('btnUbicacion');
+
+        btn.classList.add('loading');
+        btn.disabled = true;
+        mostrarEstadoUbicacion("Solicitando acceso a la ubicación...", "warning");
+
+        if (!navigator.geolocation) {
+            mostrarEstadoUbicacion("Tu navegador no soporta geolocalización", "error");
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            return;
+        }
+
+        const options = {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+        };
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const accuracy = position.coords.accuracy;
+
+                document.getElementById("latitud").value = lat.toFixed(6);
+                document.getElementById("longitud").value = lng.toFixed(6);
+
+                actualizarMapa(lat, lng);
+                actualizarDisplayCoordenadas(lat, lng);
+
+                obtenerDireccionDesdeCoordenadas(lat, lng);
+
+                mostrarEstadoUbicacion(
+                    `Ubicación obtenida correctamente (precisión: ${Math.round(accuracy)}m)`,
+                    "success"
+                );
+
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            },
+            function(error) {
+                let mensaje = "Error al obtener ubicación: ";
+
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        mensaje += "Permiso denegado. Por favor, permite el acceso a la ubicación.";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        mensaje += "Información de ubicación no disponible.";
+                        break;
+                    case error.TIMEOUT:
+                        mensaje += "Tiempo de espera agotado.";
+                        break;
+                    default:
+                        mensaje += "Error desconocido.";
+                        break;
+                }
+
+                mostrarEstadoUbicacion(mensaje, "error");
+
+                // Restaurar botón
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            },
+            options
+        );
+    }
+
+    function cancelarFormulario() {
+        if (confirm("¿Estás seguro de que deseas cancelar? Se perderán los cambios no guardados.")) {
+            localStorage.removeItem("editIndex");
+            window.location.href = "oficinaIndex.html";
+        }
+    }
+
+    function mostrarAyuda() {
+        const mensaje = `
+                🏢 AYUDA - Formulario de Oficinas
+
+                1. NOMBRE: Ingresa un nombre descriptivo para la oficina
+
+                2. UBICACIÓN: Descripción de la dirección (se completa automáticamente con GPS)
+
+                3. COORDENADAS: Se obtienen automáticamente con el botón "Obtener Mi Ubicación"
+                   - También puedes hacer clic en el mapa para establecer la ubicación
+                   - O ingresar las coordenadas manualmente
+
+                4. CAPACIDAD: Número máximo de personas que pueden estar simultáneamente
+
+                💡 CONSEJOS:
+                - Permite el acceso a la ubicación para obtener coordenadas precisas
+                - Puedes arrastrar el marcador en el mapa para ajustar la posición
+                - Todos los campos son obligatorios para registrar la oficina
+            `;
+
+        alert(mensaje);
+    }
+
+    function mostrarExito(mensaje) {
+        mostrarNotificacion(mensaje, 'success');
+    }
+
+    function mostrarError(mensaje) {
+        mostrarNotificacion(mensaje, 'error');
+    }
+
+    function mostrarNotificacion(mensaje, tipo) {
+
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${tipo === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = `
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+                max-width: 500px;
+            `;
+        alertDiv.innerHTML = `
+                <i class="bi bi-${tipo === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                ${mensaje}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+
+    (function() {
+        'use strict';
+
+        const forms = document.querySelectorAll('.needs-validation');
+
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    const firstInvalidField = form.querySelector(':invalid');
+                    if (firstInvalidField) {
+                        firstInvalidField.focus();
+                        firstInvalidField.classList.add('shake');
+                        setTimeout(() => {
+                            firstInvalidField.classList.remove('shake');
+                        }, 500);
+                    }
+
+                    mostrarError("Por favor, completa todos los campos obligatorios.");
+                }
+
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+
+    window.addEventListener('beforeunload', function() {
+
+        if (!document.getElementById('btnGuardar').classList.contains('loading')) {
+            localStorage.removeItem('editIndex');
         }
     });
 </script>
-
-<div class="container mt-4">
-    <h1 class="text-center mb-4">Agregar Oficina</h1>
-
-    <div class="row">
-
-        <div class="col-md-6">
-            <form class="needs-validation" novalidate onsubmit="guardarOficina(event)">
-                <div class="mb-3">
-                    <label for="nombre" class="form-label">Nombre de la Oficina</label>
-                    <input id="nombre" class="form-control" required/>
-                    <div class="invalid-feedback">
-                        El campo Nombre es obligatorio.
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="ubicacion" class="form-label">Ubicación (Descripción)</label>
-                    <input id="ubicacion" class="form-control" required/>
-                    <div class="invalid-feedback">
-                        El campo Ubicación es obligatorio.
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <label for="latitud" class="form-label">Latitud</label>
-                        <input type="number" step="any" id="latitud" class="form-control"
-                               onchange="onCoordenadasChange()" required/>
-                        <div class="invalid-feedback">
-                            La latitud es obligatoria.
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="longitud" class="form-label">Longitud</label>
-                        <input type="number" step="any" id="longitud" class="form-control"
-                               onchange="onCoordenadasChange()" required/>
-                        <div class="invalid-feedback">
-                            La longitud es obligatoria.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="capacidadMaxima" class="form-label">Capacidad Máxima de Personas</label>
-                    <input type="number" id="capacidadMaxima" class="form-control" min="1" required/>
-                    <div class="invalid-feedback">
-                        La capacidad máxima es obligatoria y debe ser mayor a 0.
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <button type="button" class="btn btn-info" onclick="obtenerUbicacionActual()">
-                        <i class="bi bi-geo-alt"></i> Obtener Ubicación Actual
-                    </button>
-                </div>
-
-                <div class="text-center">
-                    <button type="submit" class="btn btn-primary me-2">
-                        <i class="bi bi-plus-circle"></i> Guardar
-                    </button>
-                    <button type="button" class="btn btn-secondary" onclick="window.location.href='oficinaIndex.html'">
-                        <i class="bi bi-x-circle"></i> Cancelar
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Mapa -->
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="bi bi-map"></i> Ubicación en el Mapa</h5>
-                </div>
-                <div class="card-body">
-                    <div id="map" style="height: 400px; width: 100%;"></div>
-                    <small class="text-muted mt-2 d-block">
-                        Haz clic en el mapa o arrastra el marcador para cambiar la ubicación
-                    </small>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<footer class="bg-dark text-white-50 text-center py-3 mt-5">
-    &copy; 2025 Progra IV - Todos los derechos reservados
-</footer>
 </body>
 </html>

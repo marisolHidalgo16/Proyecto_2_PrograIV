@@ -1,6 +1,88 @@
 let paginaActualRegistros = 0;
 let totalPaginasRegistros = 0;
 const tamanoPaginaRegistros = 5;
+let permisosUsuario = null;
+let registrosData = [];
+
+document.addEventListener("DOMContentLoaded", async function() {
+
+    const isAuth = await verificarAutenticacion();
+    if (!isAuth) return;
+
+    await cargarPermisosUsuario();
+
+    aplicarPermisosVisuales();
+
+    if (document.getElementById("registros-list")) {
+
+        await cargarRegistros();
+    } else if (document.getElementById("persona")) {
+
+        await cargarPersonasCombo();
+        await cargarOficinasCombo();
+        actualizarFechaHora();
+    }
+
+    console.log('Módulo de registros inicializado correctamente');
+});
+
+async function cargarPermisosUsuario() {
+    try {
+        const response = await authorizedFetch('http://localhost:8080/api/user/permissions');
+        if (response && response.ok) {
+            permisosUsuario = await response.json();
+            console.log('Permisos de usuario cargados:', permisosUsuario);
+        }
+    } catch (error) {
+        console.error('Error al cargar permisos:', error);
+    }
+}
+
+function aplicarPermisosVisuales() {
+    const role = localStorage.getItem("role");
+
+    if (role === "ROLE_VISOR") {
+
+        ocultarElementos([
+            'a[href="formRegistro.html"]',
+            '.btn-primary[href="formRegistro.html"]'
+        ]);
+
+        mostrarMensajeInfoPermisos("Modo de solo lectura - No puedes crear registros de entrada/salida");
+    }
+
+    if (role === "ROLE_REGISTRADOR") {
+        console.log('Usuario registrador: acceso completo a registros');
+    }
+
+    if (role === "ROLE_ADMINISTRADOR") {
+        console.log('Usuario administrador: acceso completo a registros');
+    }
+}
+
+function ocultarElementos(selectores) {
+    selectores.forEach(selector => {
+        const elementos = document.querySelectorAll(selector);
+        elementos.forEach(elemento => {
+            elemento.style.display = 'none';
+        });
+    });
+}
+
+function mostrarMensajeInfoPermisos(mensaje) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-info alert-dismissible fade show mb-3';
+    alertDiv.innerHTML = `
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Información:</strong> ${mensaje}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    const container = document.querySelector('.container');
+    if (container && container.firstChild) {
+        container.insertBefore(alertDiv, container.firstChild.nextSibling);
+    }
+}
 
 function mostrarCargandoRegistros() {
     const tbody = document.getElementById("registros-list");
@@ -19,14 +101,6 @@ function mostrarCargandoRegistros() {
 }
 
 async function cargarRegistros(pagina = 0) {
-    const token = localStorage.getItem("jwt");
-
-    if (!token) {
-        alert("No estás autenticado. Por favor inicia sesión.");
-        window.location.href = "login.html";
-        return;
-    }
-
     mostrarCargandoRegistros();
 
     const params = new URLSearchParams();
@@ -38,46 +112,42 @@ async function cargarRegistros(pagina = 0) {
     console.log('Cargando registros, página:', pagina);
 
     try {
-        const respuesta = await fetch(`http://localhost:8080/api/registros?${params.toString()}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const respuesta = await authorizedFetch(`http://localhost:8080/api/registros?${params.toString()}`);
 
-        if (!respuesta.ok) {
-            if (respuesta.status === 401 || respuesta.status === 403) {
-                alert("Sesión expirada. Por favor inicia sesión nuevamente.");
-                localStorage.removeItem("jwt");
-                window.location.href = "login.html";
-                return;
-            }
-            throw new Error(`HTTP ${respuesta.status}`);
+        if (!respuesta || !respuesta.ok) {
+            throw new Error(`Error HTTP ${respuesta?.status || 'desconocido'}`);
         }
 
         const resultado = await respuesta.json();
         console.log('Resultado registros obtenido:', resultado);
+
+        registrosData = resultado.registros;
         mostrarRegistros(resultado);
         actualizarPaginacionRegistros(resultado);
 
     } catch (error) {
         console.error('Error al cargar registros:', error);
+        mostrarErrorEnTablaRegistros();
+        mostrarNotificacion('Error al cargar registros. Verifique su conexión.', 'error');
+    }
+}
 
-        const tbody = document.getElementById("registros-list");
-        if (tbody) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-center text-danger py-4">
-                        <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
-                        <p class="mt-2 mb-0">Error al cargar los registros</p>
-                        <small class="text-muted">Verifique su conexión a internet</small>
-                    </td>
-                </tr>
-            `;
-        }
-
-        alert('No se pudieron obtener los registros. Verifique su conexión.');
+function mostrarErrorEnTablaRegistros() {
+    const tbody = document.getElementById("registros-list");
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-danger py-4">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">Error al cargar los registros</p>
+                    <small class="text-muted">Verifique su conexión a internet</small>
+                    <br>
+                    <button class="btn btn-outline-primary btn-sm mt-2" onclick="cargarRegistros(${paginaActualRegistros})">
+                        <i class="bi bi-arrow-clockwise"></i> Reintentar
+                    </button>
+                </td>
+            </tr>
+        `;
     }
 }
 
@@ -195,18 +265,12 @@ function cambiarPaginaRegistros(pagina) {
 }
 
 async function cargarPersonasCombo() {
-    const token = localStorage.getItem("jwt");
-
     try {
-        const respuesta = await fetch('http://localhost:8080/api/personas/all', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const respuesta = await authorizedFetch('http://localhost:8080/api/personas/all');
 
-        if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+        if (!respuesta || !respuesta.ok) {
+            throw new Error(`Error HTTP ${respuesta?.status || 'desconocido'}`);
+        }
 
         const personas = await respuesta.json();
         const select = document.getElementById("persona");
@@ -222,23 +286,17 @@ async function cargarPersonasCombo() {
         }
     } catch (error) {
         console.error('Error al cargar personas:', error);
-        alert('Error al cargar la lista de personas');
+        mostrarNotificacion('Error al cargar la lista de personas', 'error');
     }
 }
 
 async function cargarOficinasCombo() {
-    const token = localStorage.getItem("jwt");
-
     try {
-        const respuesta = await fetch('http://localhost:8080/api/oficinas', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const respuesta = await authorizedFetch('http://localhost:8080/api/oficinas');
 
-        if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+        if (!respuesta || !respuesta.ok) {
+            throw new Error(`Error HTTP ${respuesta?.status || 'desconocido'}`);
+        }
 
         const oficinas = await respuesta.json();
         const select = document.getElementById("oficina");
@@ -254,7 +312,7 @@ async function cargarOficinasCombo() {
         }
     } catch (error) {
         console.error('Error al cargar oficinas:', error);
-        alert('Error al cargar la lista de oficinas');
+        mostrarNotificacion('Error al cargar la lista de oficinas', 'error');
     }
 }
 
@@ -268,18 +326,12 @@ async function verificarEstadoPersona() {
         return;
     }
 
-    const token = localStorage.getItem("jwt");
-
     try {
-        const respuesta = await fetch(`http://localhost:8080/api/registros/persona/${personaId}/estado`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const respuesta = await authorizedFetch(`http://localhost:8080/api/registros/persona/${personaId}/estado`);
 
-        if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+        if (!respuesta || !respuesta.ok) {
+            throw new Error(`Error HTTP ${respuesta?.status || 'desconocido'}`);
+        }
 
         const resultado = await respuesta.json();
 
@@ -304,18 +356,12 @@ async function verificarCapacidadOficina() {
         return;
     }
 
-    const token = localStorage.getItem("jwt");
-
     try {
-        const respuesta = await fetch(`http://localhost:8080/api/registros/oficina/${oficinaId}/personas`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const respuesta = await authorizedFetch(`http://localhost:8080/api/registros/oficina/${oficinaId}/personas`);
 
-        if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+        if (!respuesta || !respuesta.ok) {
+            throw new Error(`Error HTTP ${respuesta?.status || 'desconocido'}`);
+        }
 
         const resultado = await respuesta.json();
 
@@ -333,6 +379,13 @@ async function verificarCapacidadOficina() {
 async function procesarRegistro(event) {
     event.preventDefault();
 
+    const role = localStorage.getItem("role");
+
+    if (role === "ROLE_VISOR") {
+        mostrarNotificacion('No tienes permisos para crear registros.', 'error');
+        return;
+    }
+
     let form = event.target;
     if (!form.checkValidity()) {
         event.stopPropagation();
@@ -345,17 +398,13 @@ async function procesarRegistro(event) {
     const tipoMovimiento = document.getElementById("tipoMovimiento").value;
     const fechaHora = document.getElementById("fechaHora").value;
 
-    const token = localStorage.getItem("jwt");
-
     try {
         const endpoint = tipoMovimiento === 'ENTRADA' ? 'entrada' : 'salida';
 
-        const respuesta = await fetch(`http://localhost:8080/api/registros/${endpoint}`, {
+        mostrarNotificacion('Procesando registro...', 'info');
+
+        const respuesta = await authorizedFetch(`http://localhost:8080/api/registros/${endpoint}`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
                 personaId: personaId,
                 oficinaId: oficinaId,
@@ -364,46 +413,63 @@ async function procesarRegistro(event) {
             })
         });
 
+        if (!respuesta || !respuesta.ok) {
+            const errorData = await respuesta.json();
+            throw new Error(errorData.message || 'Error al procesar el registro');
+        }
+
         const resultado = await respuesta.json();
 
-        if (!respuesta.ok || !resultado.success) {
+        if (!resultado.success) {
             throw new Error(resultado.message || 'Error al procesar el registro');
         }
 
-        alert(`✅ ${resultado.message}`);
+        mostrarNotificacion(resultado.message, 'success');
 
         limpiarFormulario();
-        window.location.href = "registrosIndex.html";
+
+        setTimeout(() => {
+            window.location.href = "registrosIndex.html";
+        }, 2000);
 
     } catch (error) {
         console.error('Error al procesar registro:', error);
-        alert(`❌ ${error.message}`);
+        mostrarNotificacion(error.message, 'error');
     }
 }
 
 function limpiarFormulario() {
-    const persona = document.getElementById("persona");
-    const oficina = document.getElementById("oficina");
-    const tipoMovimiento = document.getElementById("tipoMovimiento");
+    const campos = ['persona', 'oficina', 'tipoMovimiento'];
+
+    campos.forEach(campoId => {
+        const campo = document.getElementById(campoId);
+        if (campo) campo.value = "";
+    });
+
     const fechaHora = document.getElementById("fechaHora");
+    if (fechaHora) {
+        actualizarFechaHora();
+    }
+
     const infoEstado = document.getElementById("info-estado");
     const infoCapacidad = document.getElementById("info-capacidad");
-
-    if (persona) persona.value = "";
-    if (oficina) oficina.value = "";
-    if (tipoMovimiento) tipoMovimiento.value = "";
-    if (fechaHora) {
-        // Establecer fecha y hora actual
-        const ahora = new Date();
-        fechaHora.value = ahora.toISOString().slice(0, 16);
-    }
 
     if (infoEstado) infoEstado.style.display = "none";
     if (infoCapacidad) infoCapacidad.style.display = "none";
 
+    // Remover validación
     document.querySelectorAll('.was-validated').forEach(el => {
         el.classList.remove('was-validated');
     });
+}
+
+function actualizarFechaHora() {
+    const ahora = new Date();
+    const fechaHoraString = ahora.toISOString().slice(0, 16);
+    const fechaHoraInput = document.getElementById('fechaHora');
+    if (fechaHoraInput) {
+        fechaHoraInput.value = fechaHoraString;
+    }
 }
 
 function formatearFechaHora(fechaHoraString) {
@@ -420,3 +486,64 @@ function formatearFechaHora(fechaHoraString) {
         return fechaHoraString;
     }
 }
+
+function mostrarNotificacion(mensaje, tipo = 'info') {
+    const notificacionAnterior = document.getElementById('notificacion-temporal');
+    if (notificacionAnterior) {
+        notificacionAnterior.remove();
+    }
+
+    const alertClass = {
+        'success': 'alert-success',
+        'error': 'alert-danger',
+        'info': 'alert-info',
+        'warning': 'alert-warning'
+    };
+
+    const iconClass = {
+        'success': 'bi-check-circle',
+        'error': 'bi-exclamation-triangle',
+        'info': 'bi-info-circle',
+        'warning': 'bi-exclamation-triangle'
+    };
+
+    const alertDiv = document.createElement('div');
+    alertDiv.id = 'notificacion-temporal';
+    alertDiv.className = `alert ${alertClass[tipo]} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = `
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        max-width: 500px;
+    `;
+    alertDiv.innerHTML = `
+        <i class="bi ${iconClass[tipo]} me-2"></i>
+        ${mensaje}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    document.body.appendChild(alertDiv);
+
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function mostrarEstadisticasRapidas() {
+    const totalRegistros = document.getElementById("total-registros")?.textContent || "0 registros";
+    mostrarNotificacion(`📊 Estadísticas rápidas:\n\n${totalRegistros} en el sistema\n\n¡Panel de estadísticas avanzadas disponible en el menú!`, 'info');
+}
+
+window.cargarRegistros = cargarRegistros;
+window.cambiarPaginaRegistros = cambiarPaginaRegistros;
+window.cargarPersonasCombo = cargarPersonasCombo;
+window.cargarOficinasCombo = cargarOficinasCombo;
+window.verificarEstadoPersona = verificarEstadoPersona;
+window.verificarCapacidadOficina = verificarCapacidadOficina;
+window.procesarRegistro = procesarRegistro;
+window.limpiarFormulario = limpiarFormulario;
+window.actualizarFechaHora = actualizarFechaHora;
+window.mostrarEstadisticasRapidas = mostrarEstadisticasRapidas;

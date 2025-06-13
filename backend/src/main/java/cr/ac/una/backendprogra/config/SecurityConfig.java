@@ -4,6 +4,7 @@ import cr.ac.una.backendprogra.security.JwtAuthenticationFilter;
 import cr.ac.una.backendprogra.service.JwtService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -34,6 +35,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
+                        // === ENDPOINTS PÚBLICOS ===
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(
@@ -47,15 +49,27 @@ public class SecurityConfig {
                                 "/actuator/**"
                         ).permitAll()
 
-                        .requestMatchers("GET", "/api/personas/**").hasAnyRole("ADMINISTRADOR", "VISOR")
-                        .requestMatchers("GET", "/api/oficinas/**").hasAnyRole("ADMINISTRADOR", "VISOR")
+                        .requestMatchers(HttpMethod.GET, "/api/personas/**").hasAnyRole("ADMINISTRADOR", "VISOR")
 
-                        .requestMatchers("POST", "/api/personas/**").hasRole("ADMINISTRADOR")
-                        .requestMatchers("PUT", "/api/personas/**").hasRole("ADMINISTRADOR")
-                        .requestMatchers("DELETE", "/api/personas/**").hasRole("ADMINISTRADOR")
-                        .requestMatchers("POST", "/api/oficinas/**").hasRole("ADMINISTRADOR")
-                        .requestMatchers("PUT", "/api/oficinas/**").hasRole("ADMINISTRADOR")
-                        .requestMatchers("DELETE", "/api/oficinas/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.POST, "/api/personas/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/personas/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/personas/**").hasRole("ADMINISTRADOR")
+
+                        .requestMatchers(HttpMethod.GET, "/api/oficinas/**").hasAnyRole("ADMINISTRADOR", "VISOR")
+
+                        .requestMatchers(HttpMethod.POST, "/api/oficinas/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/oficinas/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/oficinas/**").hasRole("ADMINISTRADOR")
+
+                        .requestMatchers(HttpMethod.GET, "/api/registros/**").hasAnyRole("ADMINISTRADOR", "VISOR", "REGISTRADOR")
+
+                        .requestMatchers(HttpMethod.POST, "/api/registros/**").hasAnyRole("ADMINISTRADOR", "REGISTRADOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/registros/**").hasAnyRole("ADMINISTRADOR", "REGISTRADOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/registros/**").hasRole("ADMINISTRADOR")
+
+                        .requestMatchers("/api/estadisticas/**").hasAnyRole("ADMINISTRADOR", "VISOR")
+
+                        .requestMatchers("/api/reportes/**").hasAnyRole("ADMINISTRADOR", "VISOR")
 
                         .anyRequest().authenticated()
                 )

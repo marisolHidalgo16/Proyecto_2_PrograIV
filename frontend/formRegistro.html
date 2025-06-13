@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Registrar Entrada/Salida</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Entrada/Salida - Sistema de Oficinas</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
           crossorigin="anonymous">
@@ -11,94 +13,289 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
-    <script src="js/registros.js"></script>
+
+    <!-- Scripts de autenticación y funcionalidad -->
+    <script src="js/authGuard.js"></script>
     <script src="js/auth.js"></script>
-    <script>verificarAutenticacion();</script>
+    <script src="js/permissions.js"></script>
+    <script src="js/registros.js"></script>
+
+    <style>
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 0 25px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #fd7e14 0%, #f39c12 100%);
+            color: white;
+            padding: 1.5rem;
+            border-bottom: none;
+        }
+
+        .form-control, .form-select {
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #fd7e14;
+            box-shadow: 0 0 0 0.25rem rgba(253, 126, 20, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading-spinner {
+            display: none;
+        }
+
+        .loading .loading-spinner {
+            display: inline-block;
+        }
+
+        .loading .btn-text {
+            display: none;
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+        }
+
+        .floating-help {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #fd7e14 0%, #f39c12 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .required-field {
+            color: #dc3545;
+        }
+
+        .field-group {
+            background: rgba(253, 126, 20, 0.05);
+            border: 1px solid rgba(253, 126, 20, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .field-group h6 {
+            color: #fd7e14;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .info-estado {
+            background: rgba(13, 202, 240, 0.1);
+            border: 1px solid rgba(13, 202, 240, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .info-capacidad {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .fecha-hora-info {
+            background: rgba(108, 117, 125, 0.1);
+            border: 1px solid rgba(108, 117, 125, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                margin: 1rem;
+                border-radius: 15px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .field-group {
+                padding: 1rem;
+            }
+        }
+
+        /* Animaciones */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 20%, 40%, 60%, 80% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+        }
+
+        .success-flash {
+            animation: successFlash 0.5s ease-in-out;
+        }
+
+        @keyframes successFlash {
+            0% { background-color: transparent; }
+            50% { background-color: rgba(253, 126, 20, 0.2); }
+            100% { background-color: transparent; }
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<!-- Navegación -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container-fluid">
         <a class="navbar-brand" href="personaIndex.html">
-            <i class="bi bi-building"></i> Sistema Oficinas
+            <i class="bi bi-building me-2"></i>Sistema de Oficinas
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="personasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-people"></i> Personas
+                <!-- Personas -->
+                <li class="nav-item dropdown" id="personasDropdownContainer">
+                    <a class="nav-link dropdown-toggle" href="#" id="personasDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-people me-1"></i>Personas
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="personasDropdown">
                         <li><a class="dropdown-item" href="personaIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Personas
+                            <i class="bi bi-list-ul me-2"></i>Lista de Personas
                         </a></li>
-                        <li><a class="dropdown-item" href="formPersona.html">
-                            <i class="bi bi-person-plus"></i> Agregar Persona
+                        <li><a class="dropdown-item" href="formPersona.html" id="linkAgregarPersona">
+                            <i class="bi bi-person-plus me-2"></i>Agregar Persona
                         </a></li>
                     </ul>
                 </li>
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="oficinasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-building"></i> Oficinas
+                <!-- Oficinas -->
+                <li class="nav-item dropdown" id="oficinasDropdownContainer">
+                    <a class="nav-link dropdown-toggle" href="#" id="oficinasDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-building me-1"></i>Oficinas
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="oficinasDropdown">
                         <li><a class="dropdown-item" href="oficinaIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Oficinas
+                            <i class="bi bi-list-ul me-2"></i>Lista de Oficinas
                         </a></li>
-                        <li><a class="dropdown-item" href="formOficina.html">
-                            <i class="bi bi-building-add"></i> Agregar Oficina
+                        <li><a class="dropdown-item" href="formOficina.html" id="linkAgregarOficina">
+                            <i class="bi bi-building-add me-2"></i>Agregar Oficina
                         </a></li>
                     </ul>
                 </li>
 
-                <!-- *** NUEVA SECCIÓN DE REGISTROS *** -->
+                <!-- Registros -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="registrosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-clock-history"></i> Registros
+                    <a class="nav-link dropdown-toggle active" href="#" id="registrosDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-clock-history me-1"></i>Registros
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="registrosDropdown">
                         <li><a class="dropdown-item" href="registrosIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Registros
+                            <i class="bi bi-list-ul me-2"></i>Lista de Registros
                         </a></li>
-                        <li><a class="dropdown-item" href="formRegistro.html">
-                            <i class="bi bi-plus-circle"></i> Nuevo Registro
-                        </a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="mostrarEstadisticasRapidas()">
-                            <i class="bi bi-bar-chart"></i> Estadísticas
+                        <li><a class="dropdown-item active" href="formRegistro.html">
+                            <i class="bi bi-plus-circle me-2"></i>Nuevo Registro
                         </a></li>
                     </ul>
                 </li>
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bar-chart"></i> Reportes y Estadísticas
+                <!-- Reportes -->
+                <li class="nav-item dropdown" id="reportesDropdownContainer">
+                    <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bar-chart me-1"></i>Reportes
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
                         <li><a class="dropdown-item" href="reportesIndex.html">
-                            <i class="bi bi-graph-up"></i> Reportes y Estadísticas
+                            <i class="bi bi-graph-up me-2"></i>Dashboard y Estadísticas
                         </a></li>
                     </ul>
                 </li>
             </ul>
 
+            <!-- Usuario -->
             <ul class="navbar-nav">
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="usuarioDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle"></i> <span id="nombreUsuario">Usuario</span>
+                    <a class="nav-link dropdown-toggle user-info" href="#" id="usuarioDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-1"></i>
+                        <span id="nombreUsuario">Usuario</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="usuarioDropdown">
                         <li><h6 class="dropdown-header">
+                            <i class="bi bi-shield-check me-2"></i>
                             <span id="rolUsuario">Rol</span>
                         </h6></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="logout()">
-                            <i class="bi bi-door-closed text-danger"></i> Cerrar Sesión
+                        <li><a class="dropdown-item text-danger" href="#" onclick="logout()">
+                            <i class="bi bi-door-closed me-2"></i>Cerrar Sesión
                         </a></li>
                     </ul>
                 </li>
@@ -107,8 +304,272 @@
     </div>
 </nav>
 
+<!-- Contenido Principal -->
+<div class="container mt-4 fade-in">
+    <!-- Encabezado -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-6 fw-bold text-warning mb-2">
+                        <i class="bi bi-plus-circle me-3"></i>Registrar Entrada/Salida
+                    </h1>
+                    <p class="text-muted mb-0">Controla el flujo de personas en las oficinas</p>
+                </div>
+                <div class="d-none d-md-block">
+                    <a href="registrosIndex.html" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Volver a Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información importante -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="info-card">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-info-circle me-3" style="font-size: 2rem;"></i>
+                    <div>
+                        <h5 class="mb-2">Control de Acceso</h5>
+                        <p class="mb-0">
+                            Sistema inteligente que valida capacidad máxima y flujo correcto de entrada/salida.
+                            Todos los campos son obligatorios para un registro exitoso.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil-square me-2"></i>Formulario de Registro
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form class="needs-validation" novalidate onsubmit="procesarRegistro(event)" id="formRegistro">
+
+                        <!-- Grupo: Selección de Persona y Oficina -->
+                        <div class="field-group">
+                            <h6>
+                                <i class="bi bi-person-gear me-2"></i>Información del Registro
+                            </h6>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="persona" class="form-label">
+                                        <i class="bi bi-person text-primary me-2"></i>Persona
+                                        <span class="required-field">*</span>
+                                    </label>
+                                    <select id="persona" class="form-select" required onchange="verificarEstadoPersona()">
+                                        <option value="">Seleccionar persona...</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        <i class="bi bi-exclamation-circle me-1"></i>
+                                        Debe seleccionar una persona.
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="bi bi-lightbulb text-warning me-1"></i>
+                                        Se verificará el estado actual automáticamente
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="oficina" class="form-label">
+                                        <i class="bi bi-building text-success me-2"></i>Oficina
+                                        <span class="required-field">*</span>
+                                    </label>
+                                    <select id="oficina" class="form-select" required onchange="verificarCapacidadOficina()">
+                                        <option value="">Seleccionar oficina...</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        <i class="bi bi-exclamation-circle me-1"></i>
+                                        Debe seleccionar una oficina.
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="bi bi-people text-info me-1"></i>
+                                        Se verificará la capacidad disponible
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Información de estado -->
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div id="info-estado" class="info-estado" style="display: none;">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        <span id="estado-texto"></span>
+                                    </div>
+                                    <div id="info-capacidad" class="info-capacidad" style="display: none;">
+                                        <i class="bi bi-exclamation-triangle me-2"></i>
+                                        <span id="capacidad-texto"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grupo: Tipo de Movimiento y Fecha/Hora -->
+                        <div class="field-group">
+                            <h6>
+                                <i class="bi bi-arrow-left-right me-2"></i>Detalles del Movimiento
+                            </h6>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="tipoMovimiento" class="form-label">
+                                        <i class="bi bi-arrow-left-right text-warning me-2"></i>Tipo de Movimiento
+                                        <span class="required-field">*</span>
+                                    </label>
+                                    <select id="tipoMovimiento" class="form-select" required>
+                                        <option value="">Seleccionar tipo...</option>
+                                        <option value="ENTRADA">
+                                            <i class="bi bi-box-arrow-in-right"></i> Entrada
+                                        </option>
+                                        <option value="SALIDA">
+                                            <i class="bi bi-box-arrow-right"></i> Salida
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        <i class="bi bi-exclamation-circle me-1"></i>
+                                        Seleccione el tipo de movimiento.
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="fechaHora" class="form-label">
+                                        <i class="bi bi-clock text-info me-2"></i>Fecha y Hora
+                                        <span class="required-field">*</span>
+                                    </label>
+                                    <input type="datetime-local" id="fechaHora" class="form-control" required>
+                                    <div class="invalid-feedback">
+                                        <i class="bi bi-exclamation-circle me-1"></i>
+                                        La fecha y hora son obligatorias.
+                                    </div>
+                                    <div class="fecha-hora-info">
+                                        <i class="bi bi-clock-history text-muted me-1"></i>
+                                        <small class="text-muted">Se establece automáticamente la hora actual</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-warning flex-fill btn-lg" id="btnRegistrar">
+                                <span class="loading-spinner spinner-border spinner-border-sm me-2" role="status"></span>
+                                <span class="btn-text">
+                                    <i class="bi bi-check-circle me-2"></i>Registrar Movimiento
+                                </span>
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-lg" onclick="limpiarFormulario()">
+                                <i class="bi bi-x-circle me-2"></i>Limpiar
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-lg" onclick="mostrarEstadisticasRapidas()">
+                                <i class="bi bi-bar-chart me-2"></i>Estadísticas
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ayuda flotante -->
+<div class="floating-help">
+    <button class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="left"
+            title="¿Necesitas ayuda? Haz clic aquí" onclick="mostrarAyuda()">
+        <i class="bi bi-question-circle"></i>
+    </button>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white-50 text-center py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-1">
+                    <i class="bi bi-clock-history me-2"></i>
+                    <strong>Sistema de Gestión de Oficinas</strong>
+                </p>
+                <small>Control de Entradas y Salidas</small>
+            </div>
+            <div class="col-md-6">
+                <small>
+                    &copy; 2025 Programación IV - Universidad Nacional de Costa Rica
+                    <br>
+                    <i class="bi bi-shield-check me-1"></i>Sistema de Control de Acceso
+                </small>
+            </div>
+        </div>
+    </div>
+</footer>
+
 <script>
+    // Variables globales específicas del formulario
+    let permisosUsuario = null;
+    let personasDisponibles = [];
+    let oficinasDisponibles = [];
+
+    // Inicialización de la página
     document.addEventListener("DOMContentLoaded", function() {
+        // Verificar autenticación
+        verificarAutenticacion().then(isAuth => {
+            if (!isAuth) return;
+
+            // Verificar permisos específicos
+            verificarPermisos();
+
+            // Mostrar información del usuario
+            mostrarInfoUsuario();
+
+            // Aplicar permisos de navegación
+            aplicarPermisosNavegacion();
+
+            // Cargar datos necesarios
+            cargarDatosFormulario();
+
+            // Inicializar tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            console.log('✅ Formulario de registro inicializado correctamente');
+        });
+    });
+
+    // Función para verificar permisos específicos
+    function verificarPermisos() {
+        const role = localStorage.getItem("role");
+
+        // Solo ADMINISTRADOR y REGISTRADOR pueden acceder
+        if (role !== "ROLE_ADMINISTRADOR" && role !== "ROLE_REGISTRADOR") {
+            mostrarError("No tienes permisos para registrar entradas y salidas.");
+            setTimeout(() => {
+                redirectBasedOnRole(role);
+            }, 3000);
+            return false;
+        }
+
+        // Mostrar mensaje informativo según el rol
+        if (role === "ROLE_REGISTRADOR") {
+            mostrarMensajeInfoPermisos("Modo Registrador - Tienes acceso completo al sistema de registros");
+        } else if (role === "ROLE_ADMINISTRADOR") {
+            mostrarMensajeInfoPermisos("Modo Administrador - Acceso completo al sistema");
+        }
+
+        return true;
+    }
+
+    // Función para mostrar información del usuario
+    function mostrarInfoUsuario() {
         const username = localStorage.getItem("username");
         const role = localStorage.getItem("role");
 
@@ -118,155 +579,216 @@
 
         if (role) {
             let roleText = "";
+            let roleIcon = "";
+
             switch(role) {
                 case "ROLE_ADMINISTRADOR":
                     roleText = "Administrador";
+                    roleIcon = "👑";
                     break;
                 case "ROLE_REGISTRADOR":
                     roleText = "Registrador";
-                    break;
-                case "ROLE_VISOR":
-                    roleText = "Visor";
+                    roleIcon = "📝";
                     break;
                 default:
                     roleText = role.replace("ROLE_", "");
+                    roleIcon = "👤";
             }
-            document.getElementById("rolUsuario").textContent = roleText;
+
+            document.getElementById("rolUsuario").innerHTML = `${roleIcon} ${roleText}`;
         }
-    });
-</script>
-
-<div class="container mt-4">
-    <h1 class="text-center mb-4">
-        <i class="bi bi-plus-circle"></i> Registrar Entrada/Salida
-    </h1>
-
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <!-- Card de Registro -->
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Formulario de Registro</h5>
-                </div>
-                <div class="card-body">
-                    <form class="needs-validation" novalidate onsubmit="procesarRegistro(event)">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="persona" class="form-label">
-                                    <i class="bi bi-person"></i> Persona <span class="text-danger">*</span>
-                                </label>
-                                <select id="persona" class="form-select" required onchange="verificarEstadoPersona()">
-                                    <option value="">Seleccionar persona...</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Por favor selecciona una persona.
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="oficina" class="form-label">
-                                    <i class="bi bi-building"></i> Oficina <span class="text-danger">*</span>
-                                </label>
-                                <select id="oficina" class="form-select" required onchange="verificarCapacidadOficina()">
-                                    <option value="">Seleccionar oficina...</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Por favor selecciona una oficina.
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Información del estado actual -->
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <div id="info-estado" class="alert alert-info" style="display: none;">
-                                    <i class="bi bi-info-circle"></i> <span id="estado-texto"></span>
-                                </div>
-                                <div id="info-capacidad" class="alert alert-warning" style="display: none;">
-                                    <i class="bi bi-exclamation-triangle"></i> <span id="capacidad-texto"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-6">
-                                <label for="tipoMovimiento" class="form-label">
-                                    <i class="bi bi-arrow-left-right"></i> Tipo de Movimiento <span class="text-danger">*</span>
-                                </label>
-                                <select id="tipoMovimiento" class="form-select" required>
-                                    <option value="">Seleccionar tipo...</option>
-                                    <option value="ENTRADA">
-                                        <i class="bi bi-box-arrow-in-right"></i> Entrada
-                                    </option>
-                                    <option value="SALIDA">
-                                        <i class="bi bi-box-arrow-right"></i> Salida
-                                    </option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Por favor selecciona el tipo de movimiento.
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="fechaHora" class="form-label">
-                                    <i class="bi bi-clock"></i> Fecha y Hora <span class="text-danger">*</span>
-                                </label>
-                                <input type="datetime-local" id="fechaHora" class="form-control" required>
-                                <div class="invalid-feedback">
-                                    Por favor ingresa la fecha y hora.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-4">
-                            <div class="col-12 text-center">
-                                <button type="submit" class="btn btn-success btn-lg me-3">
-                                    <i class="bi bi-check-circle"></i> Registrar
-                                </button>
-                                <button type="button" class="btn btn-secondary btn-lg" onclick="limpiarFormulario()">
-                                    <i class="bi bi-x-circle"></i> Limpiar
-                                </button>
-                                <a href="registrosIndex.html" class="btn btn-outline-primary btn-lg ms-3">
-                                    <i class="bi bi-arrow-left"></i> Volver a Lista
-                                </a>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<footer class="bg-dark text-white-50 text-center py-3 mt-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <p class="mb-1">
-                    <i class="bi bi-building"></i> Sistema de Gestión de Oficinas
-                </p>
-                <small>&copy; 2025 Progra IV - Universidad Nacional de Costa Rica</small>
-            </div>
-        </div>
-    </div>
-</footer>
-
-<script type="text/javascript">
-    document.addEventListener("DOMContentLoaded", function (){
-        cargarPersonasCombo();
-        cargarOficinasCombo();
-        actualizarFechaHora();
-    });
-
-    function actualizarFechaHora() {
-        const ahora = new Date();
-        const fechaHoraString = ahora.toISOString().slice(0, 16);
-        document.getElementById('fechaHora').value = fechaHoraString;
     }
 
-    function mostrarEstadisticasRapidas() {
-        alert('📊 Estadísticas disponibles desde la lista de registros');
+    // Función para aplicar permisos de navegación
+    function aplicarPermisosNavegacion() {
+        const role = localStorage.getItem("role");
+
+        if (role === "ROLE_REGISTRADOR") {
+            // REGISTRADOR: Solo puede ver registros
+            ocultarElementos([
+                '#personasDropdownContainer',
+                '#oficinasDropdownContainer',
+                '#reportesDropdownContainer'
+            ]);
+
+            mostrarMensajeInfoPermisos("Acceso limitado a módulo de registros únicamente");
+        }
+
+        if (role === "ROLE_VISOR") {
+            // VISOR: No debería poder acceder a este formulario
+            mostrarError("Los usuarios Visor no pueden crear registros");
+            setTimeout(() => {
+                window.location.href = "registrosIndex.html";
+            }, 2000);
+        }
     }
+
+    // Función para ocultar elementos
+    function ocultarElementos(selectores) {
+        selectores.forEach(selector => {
+            const elemento = document.querySelector(selector);
+            if (elemento) elemento.style.display = 'none';
+        });
+    }
+
+    // Función para mostrar mensajes informativos de permisos
+    function mostrarMensajeInfoPermisos(mensaje) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-info alert-dismissible fade show mb-3';
+        alertDiv.innerHTML = `
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Información:</strong> ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        const container = document.querySelector('.container');
+        if (container && container.firstChild) {
+            container.insertBefore(alertDiv, container.firstChild.nextSibling);
+        }
+
+        // Auto-remover después de 8 segundos
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 8000);
+    }
+
+    // Función para cargar datos del formulario
+    async function cargarDatosFormulario() {
+        try {
+            await Promise.all([
+                cargarPersonasCombo(),
+                cargarOficinasCombo()
+            ]);
+
+            // Establecer fecha y hora actual
+            actualizarFechaHora();
+
+            mostrarExito("Formulario cargado correctamente");
+
+        } catch (error) {
+            console.error('Error al cargar datos del formulario:', error);
+            mostrarError("Error al inicializar el formulario");
+        }
+    }
+
+    // Función para mostrar ayuda
+    function mostrarAyuda() {
+        const mensaje = `
+            🎯 AYUDA - Registro de Entrada/Salida
+
+            📋 PROCESO DE REGISTRO:
+
+            1. PERSONA: Selecciona la persona que entra/sale
+            2. OFICINA: Selecciona la oficina correspondiente
+            3. TIPO: Elige ENTRADA o SALIDA
+            4. FECHA/HORA: Se establece automáticamente (editable)
+
+            ⚠️ VALIDACIONES AUTOMÁTICAS:
+
+            • No se permite SALIDA sin ENTRADA previa
+            • No se permite ENTRADA si ya está dentro
+            • Control de capacidad máxima de oficinas
+            • Verificación en tiempo real del estado
+
+            💡 INDICADORES:
+
+            • AZUL: Información del estado actual
+            • AMARILLO: Advertencia de capacidad
+            • VERDE: Registro exitoso
+            • ROJO: Error o restricción
+
+            🔧 PERMISOS:
+            • ADMINISTRADOR: Acceso completo
+            • REGISTRADOR: Solo registros
+            • VISOR: Sin acceso a este formulario
+        `;
+
+        alert(mensaje);
+    }
+
+    // Funciones de utilidad para mensajes
+    function mostrarExito(mensaje) {
+        mostrarNotificacion(mensaje, 'success');
+    }
+
+    function mostrarError(mensaje) {
+        mostrarNotificacion(mensaje, 'error');
+    }
+
+    function mostrarNotificacion(mensaje, tipo) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${tipo === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            max-width: 500px;
+        `;
+        alertDiv.innerHTML = `
+            <i class="bi bi-${tipo === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+
+    // Redirección basada en rol
+    function redirectBasedOnRole(role) {
+        switch (role) {
+            case "ROLE_ADMINISTRADOR":
+                window.location.href = "personaIndex.html";
+                break;
+            case "ROLE_REGISTRADOR":
+                window.location.href = "registrosIndex.html";
+                break;
+            case "ROLE_VISOR":
+                window.location.href = "personaIndex.html";
+                break;
+            default:
+                window.location.href = "login.html";
+                break;
+        }
+    }
+
+    // Mejorar la validación del formulario
+    (function() {
+        'use strict';
+
+        const forms = document.querySelectorAll('.needs-validation');
+
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    // Encontrar el primer campo inválido y enfocarlo
+                    const firstInvalidField = form.querySelector(':invalid');
+                    if (firstInvalidField) {
+                        firstInvalidField.focus();
+                        firstInvalidField.classList.add('shake');
+                        setTimeout(() => {
+                            firstInvalidField.classList.remove('shake');
+                        }, 500);
+                    }
+
+                    mostrarError("Por favor, completa todos los campos obligatorios.");
+                }
+
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
 </script>
 </body>
 </html>

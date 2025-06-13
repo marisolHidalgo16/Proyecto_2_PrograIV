@@ -1,48 +1,536 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Sistema de Oficinas</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
           crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
+
+    <script src="js/authGuard.js"></script>
     <script src="js/auth.js"></script>
-    <meta charset="UTF-8">
-    <title>Iniciar Sesión</title>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .login-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2.5rem 2rem 1.5rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .login-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .login-header .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-body {
+            padding: 2.5rem;
+        }
+
+        .form-control {
+            border-radius: 12px;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 14px 30px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(-1px);
+        }
+
+        .user-roles {
+            background: rgba(102, 126, 234, 0.08);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            border: 1px solid rgba(102, 126, 234, 0.15);
+        }
+
+        .role-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .role-item:last-child {
+            border-bottom: none;
+        }
+
+        .role-item:hover {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 8px;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        .role-credentials {
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .role-credentials:hover {
+            background: rgba(0, 0, 0, 0.1);
+            transform: scale(1.05);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .loading-spinner {
+            display: none;
+        }
+
+        .loading .loading-spinner {
+            display: inline-block;
+        }
+
+        .loading .login-text {
+            display: none;
+        }
+
+        .security-notice {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .footer-info {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 768px) {
+            .login-card {
+                margin: 1rem;
+                border-radius: 15px;
+            }
+
+            .login-header {
+                padding: 2rem 1.5rem 1rem 1.5rem;
+            }
+
+            .login-body {
+                padding: 2rem 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="login-card fade-in">
 
-<div class="container mt-4">
-    <h1 class="text-center-mb-4">Iniciar Sesión</h1>
-    <form class="needs-validation" novalidate onsubmit="login(event)">
-        <div class="row mb-3">
-
-            <div class="col-md-6">
-                <label for="username">Usuario</label>
-                <input id="username" class="form-control" required/>
-                <div class="invalid-feedback">
-                    El campo Usuario es obligatorio.
+                <div class="login-header">
+                    <div class="content">
+                        <div class="pulse">
+                            <i class="bi bi-building-fill" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                        </div>
+                        <h2 class="h3 mb-2 fw-bold">Sistema de Oficinas</h2>
+                        <p class="mb-0 opacity-75">Universidad Nacional de Costa Rica</p>
+                        <small class="opacity-50">Programación IV - Proyecto 2</small>
+                    </div>
                 </div>
-            </div>
 
-            <div class="col-md-6">
-                <label for="password">Contraseña</label>
-                <input type="password" id="password" class="form-control" required/>
-                <div class="invalid-feedback">
-                    El campo Contraseña es obligatorio.
+                <div class="login-body">
+
+                    <form class="needs-validation" novalidate onsubmit="login(event)">
+                        <div class="mb-4">
+                            <label for="username" class="form-label fw-semibold">
+                                <i class="bi bi-person-circle me-2 text-primary"></i>Usuario
+                            </label>
+                            <input type="text" id="username" class="form-control form-control-lg"
+                                   placeholder="Ingresa tu usuario" required autocomplete="username">
+                            <div class="invalid-feedback">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                El campo Usuario es obligatorio.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label fw-semibold">
+                                <i class="bi bi-lock-fill me-2 text-primary"></i>Contraseña
+                            </label>
+                            <div class="position-relative">
+                                <input type="password" id="password" class="form-control form-control-lg"
+                                       placeholder="Ingresa tu contraseña" required autocomplete="current-password">
+                                <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y pe-3"
+                                        onclick="togglePasswordVisibility()">
+                                    <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                El campo Contraseña es obligatorio.
+                            </div>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-login btn-lg" id="loginButton">
+                                <span class="loading-spinner spinner-border spinner-border-sm me-2" role="status"></span>
+                                <span class="login-text">
+                                        <i class="bi bi-door-open me-2"></i>Iniciar Sesión
+                                    </span>
+                                <span class="loading-text" style="display: none;">Iniciando sesión...</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="user-roles">
+                        <h6 class="text-center mb-3 fw-bold">
+                            <i class="bi bi-info-circle me-2 text-primary"></i>Usuarios de Prueba
+                        </h6>
+
+                        <div class="role-item" onclick="fillCredentials('admin', '1234')">
+                            <div>
+                                <div class="fw-bold text-danger">
+                                    <i class="bi bi-shield-fill-check me-2"></i>Administrador
+                                </div>
+                                <small class="text-muted">Acceso completo al sistema</small>
+                            </div>
+                            <div class="role-credentials">
+                                admin / 1234
+                            </div>
+                        </div>
+
+                        <div class="role-item" onclick="fillCredentials('registrador', '12345')">
+                            <div>
+                                <div class="fw-bold text-warning">
+                                    <i class="bi bi-pencil-square me-2"></i>Registrador
+                                </div>
+                                <small class="text-muted">Solo registros de entrada/salida</small>
+                            </div>
+                            <div class="role-credentials">
+                                registrador / 12345
+                            </div>
+                        </div>
+
+                        <div class="role-item" onclick="fillCredentials('visor', '123456')">
+                            <div>
+                                <div class="fw-bold text-info">
+                                    <i class="bi bi-eye-fill me-2"></i>Visor
+                                </div>
+                                <small class="text-muted">Solo lectura de información</small>
+                            </div>
+                            <div class="role-credentials">
+                                visor / 123456
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="security-notice">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-shield-lock text-warning me-2"></i>
+                            <small class="text-muted">
+                                <strong>Nota:</strong> Este es un entorno de desarrollo.
+                                Los datos son únicamente para fines académicos.
+                            </small>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-12 text-center mt-4">
-                <button type="submit" class="btn btn-primary me-2"> Iniciar sesión
-                    <i class="bi bi-door-open"></i> </button>
             </div>
         </div>
-    </form>
+    </div>
 </div>
-<footer class="bg-dark text-white-50 text-center py-3 mt-5">
-    &copy; 2025 Progra IV - Todos los derechos reservados
-</footer>
+
+<div class="footer-info">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <p class="mb-1">
+                    <i class="bi bi-code-slash me-2"></i>
+                    <strong>Sistema de Gestión de Oficinas</strong>
+                </p>
+                <small>
+                    &copy; 2025 Programación IV - Universidad Nacional de Costa Rica
+                    <span class="mx-2">|</span>
+                    <i class="bi bi-github me-1"></i>Proyecto Final
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const usernameField = document.getElementById('username');
+        if (usernameField) {
+            usernameField.focus();
+        }
+
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const form = document.querySelector('form');
+                if (form && document.activeElement.tagName !== 'BUTTON') {
+                    e.preventDefault();
+                    form.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+
+        const token = localStorage.getItem("jwt");
+        const role = localStorage.getItem("role");
+
+        if (token && role) {
+            console.log('🔄 Usuario ya autenticado, redirigiendo...');
+            showTemporaryMessage('Ya tienes una sesión activa. Redirigiendo...', 'info');
+
+            setTimeout(() => {
+                redirectBasedOnRole(role);
+            }, 1500);
+        }
+
+        console.log('✅ Página de login inicializada');
+    });
+
+    function fillCredentials(username, password) {
+        document.getElementById('username').value = username;
+        document.getElementById('password').value = password;
+
+        const usernameField = document.getElementById('username');
+        const passwordField = document.getElementById('password');
+
+        usernameField.style.transform = 'scale(1.02)';
+        passwordField.style.transform = 'scale(1.02)';
+
+        setTimeout(() => {
+            usernameField.style.transform = 'scale(1)';
+            passwordField.style.transform = 'scale(1)';
+        }, 200);
+
+        showTemporaryMessage(`Credenciales de ${username} cargadas`, 'success', 2000);
+    }
+
+    function togglePasswordVisibility() {
+        const passwordField = document.getElementById('password');
+        const toggleIcon = document.getElementById('togglePasswordIcon');
+
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            toggleIcon.className = 'bi bi-eye-slash';
+        } else {
+            passwordField.type = 'password';
+            toggleIcon.className = 'bi bi-eye';
+        }
+    }
+
+    function showTemporaryMessage(message, type = 'info', duration = 3000) {
+
+        const existingMessage = document.getElementById('temp-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+
+        const alertClass = {
+            'success': 'alert-success',
+            'error': 'alert-danger',
+            'info': 'alert-info',
+            'warning': 'alert-warning'
+        };
+
+        const iconClass = {
+            'success': 'bi-check-circle-fill',
+            'error': 'bi-exclamation-triangle-fill',
+            'info': 'bi-info-circle-fill',
+            'warning': 'bi-exclamation-triangle-fill'
+        };
+
+        const alertDiv = document.createElement('div');
+        alertDiv.id = 'temp-message';
+        alertDiv.className = `alert ${alertClass[type]} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = `
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 10000;
+                min-width: 300px;
+                max-width: 500px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+        alertDiv.innerHTML = `
+                <i class="bi ${iconClass[type]} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+        document.body.appendChild(alertDiv);
+
+        // Auto-remover
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, duration);
+    }
+
+    function mostrarMensajeLogin(tipo, mensaje) {
+        showTemporaryMessage(mensaje, tipo);
+    }
+
+    function mostrarIndicadorLogin(mostrar) {
+        const submitBtn = document.getElementById('loginButton');
+        const form = document.querySelector('form');
+
+        if (mostrar) {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+
+            if (form) {
+                form.style.opacity = '0.7';
+                form.style.pointerEvents = 'none';
+            }
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('loading');
+
+            if (form) {
+                form.style.opacity = '1';
+                form.style.pointerEvents = 'auto';
+            }
+        }
+    }
+
+    (function() {
+        'use strict';
+
+        const forms = document.querySelectorAll('.needs-validation');
+
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    const firstInvalidField = form.querySelector(':invalid');
+                    if (firstInvalidField) {
+                        firstInvalidField.focus();
+                        firstInvalidField.style.animation = 'shake 0.5s';
+                        setTimeout(() => {
+                            firstInvalidField.style.animation = '';
+                        }, 500);
+                    }
+                }
+
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+
+    const style = document.createElement('style');
+    style.textContent = `
+            @keyframes shake {
+                0%, 20%, 40%, 60%, 80% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            }
+        `;
+    document.head.appendChild(style);
+</script>
 </body>
 </html>

@@ -2,85 +2,264 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reportes y Estadísticas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes y Estadísticas - Sistema de Oficinas</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
           crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/reportes.js"></script>
+
+    <script src="js/authGuard.js"></script>
     <script src="js/auth.js"></script>
-    <script>verificarAutenticacion();</script>
+    <script src="js/permissions.js"></script>
+    <script src="js/reportes.js"></script>
+
+    <style>
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+        }
+
+        .stats-header {
+            background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            transition: all 0.3s ease;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .summary-card.card-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        }
+
+        .summary-card.card-success {
+            background: linear-gradient(135deg, #28a745 0%, #155724 100%);
+        }
+
+        .summary-card.card-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        }
+
+        .summary-card.card-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 1rem 0;
+        }
+
+        .filter-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+            border-radius: 15px;
+        }
+
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .personas-grid {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .persona-card {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .persona-card:hover {
+            background: rgba(255,255,255,1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .progress-custom {
+            height: 8px;
+            border-radius: 4px;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            border-radius: 15px;
+        }
+
+        .export-buttons {
+            position: sticky;
+            top: 80px;
+            z-index: 100;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+
+            .export-buttons {
+                position: relative;
+                top: auto;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .empty-state {
+            padding: 4rem 2rem;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container-fluid">
         <a class="navbar-brand" href="personaIndex.html">
-            <i class="bi bi-building"></i> Sistema Oficinas
+            <i class="bi bi-building me-2"></i>Sistema de Oficinas
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="personasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-people"></i> Personas
+                <li class="nav-item dropdown" id="personasDropdownContainer">
+                    <a class="nav-link dropdown-toggle" href="#" id="personasDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-people me-1"></i>Personas
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="personasDropdown">
                         <li><a class="dropdown-item" href="personaIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Personas
+                            <i class="bi bi-list-ul me-2"></i>Lista de Personas
                         </a></li>
-                        <li><a class="dropdown-item" href="formPersona.html">
-                            <i class="bi bi-person-plus"></i> Agregar Persona
+                        <li><a class="dropdown-item" href="formPersona.html" id="linkAgregarPersona">
+                            <i class="bi bi-person-plus me-2"></i>Agregar Persona
                         </a></li>
                     </ul>
                 </li>
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="oficinasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-building"></i> Oficinas
+                <li class="nav-item dropdown" id="oficinasDropdownContainer">
+                    <a class="nav-link dropdown-toggle" href="#" id="oficinasDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-building me-1"></i>Oficinas
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="oficinasDropdown">
                         <li><a class="dropdown-item" href="oficinaIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Oficinas
+                            <i class="bi bi-list-ul me-2"></i>Lista de Oficinas
                         </a></li>
-                        <li><a class="dropdown-item" href="formOficina.html">
-                            <i class="bi bi-building-add"></i> Agregar Oficina
+                        <li><a class="dropdown-item" href="formOficina.html" id="linkAgregarOficina">
+                            <i class="bi bi-building-add me-2"></i>Agregar Oficina
                         </a></li>
                     </ul>
                 </li>
 
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="registrosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-clock-history"></i> Registros
+                    <a class="nav-link dropdown-toggle" href="#" id="registrosDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-clock-history me-1"></i>Registros
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="registrosDropdown">
                         <li><a class="dropdown-item" href="registrosIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Registros
+                            <i class="bi bi-list-ul me-2"></i>Lista de Registros
                         </a></li>
-                        <li><a class="dropdown-item" href="formRegistro.html">
-                            <i class="bi bi-plus-circle"></i> Nuevo Registro
-                        </a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="reportesIndex.html">
-                            <i class="bi bi-bar-chart"></i> Reportes y Estadísticas
+                        <li><a class="dropdown-item" href="formRegistro.html" id="linkNuevoRegistro">
+                            <i class="bi bi-plus-circle me-2"></i>Nuevo Registro
                         </a></li>
                     </ul>
                 </li>
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bar-chart"></i> Reportes y Estadísticas
+                <li class="nav-item dropdown" id="reportesDropdownContainer">
+                    <a class="nav-link dropdown-toggle active" href="#" id="reportesDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bar-chart me-1"></i>Reportes
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
-                        <li><a class="dropdown-item" href="reportesIndex.html">
-                            <i class="bi bi-graph-up"></i> Reportes y Estadísticas
+                        <li><a class="dropdown-item active" href="reportesIndex.html">
+                            <i class="bi bi-graph-up me-2"></i>Dashboard y Estadísticas
                         </a></li>
                     </ul>
                 </li>
@@ -88,16 +267,19 @@
 
             <ul class="navbar-nav">
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="usuarioDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle"></i> <span id="nombreUsuario">Usuario</span>
+                    <a class="nav-link dropdown-toggle user-info" href="#" id="usuarioDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-1"></i>
+                        <span id="nombreUsuario">Usuario</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="usuarioDropdown">
                         <li><h6 class="dropdown-header">
+                            <i class="bi bi-shield-check me-2"></i>
                             <span id="rolUsuario">Rol</span>
                         </h6></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="logout()">
-                            <i class="bi bi-door-closed text-danger"></i> Cerrar Sesión
+                        <li><a class="dropdown-item text-danger" href="#" onclick="logout()">
+                            <i class="bi bi-door-closed me-2"></i>Cerrar Sesión
                         </a></li>
                     </ul>
                 </li>
@@ -106,52 +288,91 @@
     </div>
 </nav>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const username = localStorage.getItem("username");
-        const role = localStorage.getItem("role");
+<div class="container-fluid mt-4 fade-in">
+    <div class="stats-header text-center">
+        <h1 class="display-5 fw-bold mb-2">
+            <i class="bi bi-graph-up-arrow me-3"></i>Dashboard de Reportes y Estadísticas
+        </h1>
+        <p class="mb-0 opacity-75">Panel de control con métricas en tiempo real y análisis avanzado</p>
+    </div>
 
-        if (username) {
-            document.getElementById("nombreUsuario").textContent = username;
-        }
-
-        if (role) {
-            let roleText = "";
-            switch(role) {
-                case "ROLE_ADMINISTRADOR":
-                    roleText = "Administrador";
-                    break;
-                case "ROLE_REGISTRADOR":
-                    roleText = "Registrador";
-                    break;
-                case "ROLE_VISOR":
-                    roleText = "Visor";
-                    break;
-                default:
-                    roleText = role.replace("ROLE_", "");
-            }
-            document.getElementById("rolUsuario").textContent = roleText;
-        }
-    });
-</script>
-
-<div class="container-fluid mt-4">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="text-center mb-4">
-                <i class="bi bi-graph-up-arrow text-primary"></i> Reportes y Estadísticas
-            </h1>
+    <div class="export-buttons">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-primary" onclick="cargarEstadisticas()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Actualizar Datos
+                </button>
+                <button class="btn btn-info" onclick="toggleAutoUpdate()">
+                    <i class="bi bi-clock me-1"></i><span id="autoUpdateText">Activar Auto-actualización</span>
+                </button>
+            </div>
+            <div class="d-flex gap-2 flex-wrap" id="exportButtonsContainer">
+                <button class="btn btn-danger" onclick="exportarDashboardPDF()">
+                    <i class="bi bi-file-pdf me-1"></i>Exportar PDF
+                </button>
+                <button class="btn btn-success" onclick="exportarDashboardExcel()">
+                    <i class="bi bi-file-excel me-1"></i>Exportar Excel
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Tarjetas de Resumen -->
+    <div class="card filter-card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-funnel-fill me-2"></i>Filtros de Análisis
+            </h5>
+            <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#filtrosReportesCollapse" aria-expanded="true">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+        </div>
+        <div class="collapse show" id="filtrosReportesCollapse">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="filtroFechaDesde" class="form-label fw-semibold">
+                            <i class="bi bi-calendar-date text-primary"></i> Fecha Desde
+                        </label>
+                        <input type="date" id="filtroFechaDesde" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filtroFechaHasta" class="form-label fw-semibold">
+                            <i class="bi bi-calendar-check text-primary"></i> Fecha Hasta
+                        </label>
+                        <input type="date" id="filtroFechaHasta" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary flex-fill" onclick="aplicarFiltrosFechas()">
+                                <i class="bi bi-search me-1"></i>Aplicar Filtros
+                            </button>
+                            <button class="btn btn-secondary flex-fill" onclick="limpiarFiltrosFechas()">
+                                <i class="bi bi-x-circle me-1"></i>Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Filtros Activos:</strong> <span id="filtrosActivos">Sin filtros aplicados</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card text-white bg-primary">
+            <div class="card summary-card card-primary text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 id="totalPersonas">0</h4>
+                            <h4 id="totalPersonas" class="pulse">0</h4>
                             <p class="mb-0">Total Personas</p>
                         </div>
                         <div class="align-self-center">
@@ -162,11 +383,11 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-success">
+            <div class="card summary-card card-success text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 id="totalOficinas">0</h4>
+                            <h4 id="totalOficinas" class="pulse">0</h4>
                             <p class="mb-0">Total Oficinas</p>
                         </div>
                         <div class="align-self-center">
@@ -177,11 +398,11 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-warning">
+            <div class="card summary-card card-warning text-dark">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 id="registrosHoy">0</h4>
+                            <h4 id="registrosHoy" class="pulse">0</h4>
                             <p class="mb-0">Registros Hoy</p>
                         </div>
                         <div class="align-self-center">
@@ -192,12 +413,12 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-danger">
+            <div class="card summary-card card-danger text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 id="personasEnOficinas">0</h4>
-                            <p class="mb-0">Personas en Oficinas</p>
+                            <h4 id="personasEnOficinas" class="pulse">0</h4>
+                            <p class="mb-0">En Oficinas Ahora</p>
                         </div>
                         <div class="align-self-center">
                             <i class="bi bi-geo-alt fs-1"></i>
@@ -208,63 +429,116 @@
         </div>
     </div>
 
-    <!-- Botón de Actualizar -->
-    <div class="row mb-4">
-        <div class="col-12 text-center">
-            <button class="btn btn-info btn-lg" onclick="cargarEstadisticas()">
-                <i class="bi bi-arrow-clockwise"></i> Actualizar Datos
-            </button>
-        </div>
-    </div>
-
-    <!-- Gráficos -->
     <div class="row">
-        <!-- Personas con Más Ingresos -->
         <div class="col-lg-6 mb-4">
-            <div class="card">
+            <div class="card position-relative">
                 <div class="card-header bg-info text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-person-check"></i> Personas con Más Ingresos
+                        <i class="bi bi-person-check me-2"></i>Personas con Más Ingresos
                     </h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="chartPersonasIngresos" width="400" height="200"></canvas>
+                    <div id="loadingPersonasIngresos" class="loading-overlay" style="display: none;">
+                        <div class="text-center">
+                            <div class="spinner-border text-info mb-2"></div>
+                            <p class="text-muted">Cargando datos...</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartPersonasIngresos"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Oficinas con Más Ocupación -->
         <div class="col-lg-6 mb-4">
-            <div class="card">
+            <div class="card position-relative">
                 <div class="card-header bg-warning text-dark">
                     <h5 class="mb-0">
-                        <i class="bi bi-building-fill"></i> Oficinas con Más Ocupación
+                        <i class="bi bi-building-fill me-2"></i>Oficinas con Más Ocupación
                     </h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="chartOficinasOcupacion" width="400" height="200"></canvas>
+                    <div id="loadingOficinasOcupacion" class="loading-overlay" style="display: none;">
+                        <div class="text-center">
+                            <div class="spinner-border text-warning mb-2"></div>
+                            <p class="text-muted">Cargando datos...</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartOficinasOcupacion"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Personas Actualmente en Oficinas -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card position-relative">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-fill me-2"></i>Registros por Hora del Día
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="loadingRegistrosPorHora" class="loading-overlay" style="display: none;">
+                        <div class="text-center">
+                            <div class="spinner-border text-secondary mb-2"></div>
+                            <p class="text-muted">Cargando datos...</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartRegistrosPorHora"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card position-relative">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart-fill me-2"></i>Comparación Entradas vs Salidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="loadingEntradasSalidas" class="loading-overlay" style="display: none;">
+                        <div class="text-center">
+                            <div class="spinner-border text-dark mb-2"></div>
+                            <p class="text-muted">Cargando datos...</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartEntradasSalidas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-12">
-            <div class="card">
+            <div class="card position-relative">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
-                        <i class="bi bi-geo-alt-fill"></i> Personas Actualmente en Oficinas
+                        <i class="bi bi-geo-alt-fill me-2"></i>Personas Actualmente en Oficinas
                     </h5>
                     <span id="totalPersonasEnOficinas" class="badge bg-light text-dark fs-6">0 personas</span>
                 </div>
                 <div class="card-body">
-                    <div id="personasActualesContainer">
-                        <div class="text-center py-4">
-                            <div class="spinner-border text-success" role="status">
-                                <span class="visually-hidden">Cargando...</span>
-                            </div>
-                            <p class="mt-2 mb-0">Cargando información...</p>
+                    <div id="loadingPersonasActuales" class="loading-overlay" style="display: none;">
+                        <div class="text-center">
+                            <div class="spinner-border text-success mb-3" style="width: 3rem; height: 3rem;"></div>
+                            <h5 class="text-muted">Cargando información en tiempo real...</h5>
+                            <p class="text-muted">Obteniendo estado actual de ocupación</p>
+                        </div>
+                    </div>
+                    <div id="personasActualesContainer" class="personas-grid">
+                        <div class="empty-state">
+                            <i class="bi bi-hourglass-split"></i>
+                            <h4>Inicializando Dashboard</h4>
+                            <p>Cargando información del sistema...</p>
                         </div>
                     </div>
                 </div>
@@ -273,23 +547,793 @@
     </div>
 </div>
 
-<footer class="bg-dark text-white-50 text-center py-3 mt-5">
+<footer class="bg-dark text-white-50 text-center py-4 mt-5">
     <div class="container">
         <div class="row">
-            <div class="col-12">
+            <div class="col-md-6">
                 <p class="mb-1">
-                    <i class="bi bi-building"></i> Sistema de Gestión de Oficinas - Reportes y Estadísticas
+                    <i class="bi bi-graph-up me-2"></i>
+                    <strong>Sistema de Gestión de Oficinas</strong>
                 </p>
-                <small>&copy; 2025 Progra IV - Universidad Nacional de Costa Rica</small>
+                <small>Dashboard de Reportes y Estadísticas</small>
+            </div>
+            <div class="col-md-6">
+                <small>
+                    &copy; 2025 Programación IV - Universidad Nacional de Costa Rica
+                    <br>
+                    <i class="bi bi-bar-chart me-1"></i>Análisis Avanzado de Datos
+                </small>
             </div>
         </div>
     </div>
 </footer>
 
-<script type="text/javascript">
-    document.addEventListener("DOMContentLoaded", function (){
-        cargarEstadisticas();
+<script>
+    let chartPersonasIngresos = null;
+    let chartOficinasOcupacion = null;
+    let chartRegistrosPorHora = null;
+    let chartEntradasSalidas = null;
+    let permisosUsuario = null;
+    let autoUpdateInterval = null;
+    let autoUpdateActive = false;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        verificarAutenticacion().then(isAuth => {
+            if (!isAuth) return;
+
+            verificarPermisos();
+            mostrarInfoUsuario();
+            aplicarPermisosNavegacion();
+            configurarFiltrosFechas();
+            cargarEstadisticas();
+
+            console.log('✅ Dashboard de reportes inicializado correctamente');
+        });
     });
+
+    function verificarPermisos() {
+        const role = localStorage.getItem("role");
+
+        if (role === "ROLE_REGISTRADOR") {
+            mostrarError("No tienes permisos para acceder a reportes y estadísticas.");
+            setTimeout(() => {
+                window.location.href = "registrosIndex.html";
+            }, 3000);
+            return false;
+        }
+
+        if (role !== "ROLE_ADMINISTRADOR" && role !== "ROLE_VISOR") {
+            mostrarError("Acceso denegado al dashboard de reportes.");
+            setTimeout(() => {
+                redirectBasedOnRole(role);
+            }, 3000);
+            return false;
+        }
+
+        switch(role) {
+            case "ROLE_ADMINISTRADOR":
+                mostrarMensajeInfoPermisos("Modo Administrador - Acceso completo con exportación de reportes");
+                break;
+            case "ROLE_VISOR":
+                mostrarMensajeInfoPermisos("Modo Visor - Acceso completo a estadísticas y dashboard");
+                ocultarElementos(['#exportButtonsContainer']);
+                break;
+        }
+
+        return true;
+    }
+
+    function mostrarInfoUsuario() {
+        const username = localStorage.getItem("username");
+        const role = localStorage.getItem("role");
+
+        if (username) {
+            document.getElementById("nombreUsuario").textContent = username;
+        }
+
+        if (role) {
+            let roleText = "";
+            let roleIcon = "";
+
+            switch(role) {
+                case "ROLE_ADMINISTRADOR":
+                    roleText = "Administrador";
+                    roleIcon = "👑";
+                    break;
+                case "ROLE_VISOR":
+                    roleText = "Visor";
+                    roleIcon = "👁️";
+                    break;
+                default:
+                    roleText = role.replace("ROLE_", "");
+                    roleIcon = "👤";
+            }
+
+            document.getElementById("rolUsuario").innerHTML = `${roleIcon} ${roleText}`;
+        }
+    }
+
+    function aplicarPermisosNavegacion() {
+        const role = localStorage.getItem("role");
+
+        if (role === "ROLE_VISOR") {
+            ocultarElementos([
+                '#linkAgregarPersona',
+                '#linkAgregarOficina',
+                '#linkNuevoRegistro'
+            ]);
+        }
+    }
+
+    function ocultarElementos(selectores) {
+        selectores.forEach(selector => {
+            const elemento = document.querySelector(selector);
+            if (elemento) elemento.style.display = 'none';
+        });
+    }
+
+    function mostrarMensajeInfoPermisos(mensaje) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-success alert-dismissible fade show mb-3';
+        alertDiv.innerHTML = `
+            <i class="bi bi-graph-up me-2"></i>
+            <strong>Dashboard:</strong> ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        const container = document.querySelector('.container-fluid');
+        if (container && container.firstChild) {
+            container.insertBefore(alertDiv, container.firstChild.nextSibling);
+        }
+
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 8000);
+    }
+
+    function configurarFiltrosFechas() {
+        const fechaDesde = document.getElementById('filtroFechaDesde');
+        const fechaHasta = document.getElementById('filtroFechaHasta');
+
+        const hoy = new Date();
+        const haceUnMes = new Date();
+        haceUnMes.setMonth(haceUnMes.getMonth() - 1);
+
+        fechaDesde.value = haceUnMes.toISOString().split('T')[0];
+        fechaHasta.value = hoy.toISOString().split('T')[0];
+
+        actualizarIndicadorFiltros();
+    }
+
+    function aplicarFiltrosFechas() {
+        const fechaDesde = document.getElementById('filtroFechaDesde').value;
+        const fechaHasta = document.getElementById('filtroFechaHasta').value;
+
+        if (fechaDesde && fechaHasta && fechaDesde > fechaHasta) {
+            mostrarError('La fecha "Desde" no puede ser mayor que la fecha "Hasta"');
+            return;
+        }
+
+        actualizarIndicadorFiltros();
+        cargarEstadisticas();
+        mostrarNotificacion('Filtros aplicados correctamente', 'success');
+    }
+
+    function limpiarFiltrosFechas() {
+        document.getElementById('filtroFechaDesde').value = '';
+        document.getElementById('filtroFechaHasta').value = '';
+        actualizarIndicadorFiltros();
+        cargarEstadisticas();
+        mostrarNotificacion('Filtros limpiados', 'info');
+    }
+
+    function actualizarIndicadorFiltros() {
+        const fechaDesde = document.getElementById('filtroFechaDesde').value;
+        const fechaHasta = document.getElementById('filtroFechaHasta').value;
+        const indicador = document.getElementById('filtrosActivos');
+
+        if (fechaDesde || fechaHasta) {
+            let texto = 'Filtros: ';
+            if (fechaDesde) texto += `Desde ${fechaDesde} `;
+            if (fechaHasta) texto += `Hasta ${fechaHasta}`;
+            indicador.textContent = texto;
+        } else {
+            indicador.textContent = 'Sin filtros aplicados - Mostrando todos los datos';
+        }
+    }
+
+    async function cargarEstadisticas() {
+        try {
+            mostrarCargandoEstadisticas();
+
+            const fechaDesde = document.getElementById('filtroFechaDesde').value;
+            const fechaHasta = document.getElementById('filtroFechaHasta').value;
+
+            const params = new URLSearchParams();
+            if (fechaDesde) params.append('fechaDesde', fechaDesde);
+            if (fechaHasta) params.append('fechaHasta', fechaHasta);
+
+            await Promise.all([
+                cargarResumenGeneral(),
+                cargarDashboard(params.toString()),
+                cargarGraficosAdicionales(params.toString())
+            ]);
+
+            console.log('Dashboard cargado exitosamente');
+            mostrarNotificacion('Dashboard actualizado correctamente', 'success');
+
+        } catch (error) {
+            console.error('Error al cargar dashboard:', error);
+            mostrarError('Error al cargar el dashboard. Verifique su conexión.');
+        }
+    }
+
+    async function cargarResumenGeneral() {
+        try {
+            const respuesta = await authorizedFetch('http://localhost:8080/api/estadisticas/resumen-general');
+
+            if (!respuesta || !respuesta.ok) {
+                throw new Error(`Error HTTP ${respuesta?.status || 'desconocido'}`);
+            }
+
+            const resumen = await respuesta.json();
+
+            actualizarTarjetaConAnimacion('totalPersonas', resumen.totalPersonas);
+            actualizarTarjetaConAnimacion('totalOficinas', resumen.totalOficinas);
+            actualizarTarjetaConAnimacion('registrosHoy', resumen.registrosHoy);
+            actualizarTarjetaConAnimacion('personasEnOficinas', resumen.personasEnOficinas);
+
+        } catch (error) {
+            console.error('Error al cargar resumen general:', error);
+            ['totalPersonas', 'totalOficinas', 'registrosHoy', 'personasEnOficinas'].forEach(id => {
+                const elemento = document.getElementById(id);
+                if (elemento) elemento.textContent = '0';
+            });
+        }
+    }
+
+    async function cargarDashboard(params) {
+        try {
+            const url = params ?
+                `http://localhost:8080/api/estadisticas/dashboard?${params}` :
+                'http://localhost:8080/api/estadisticas/dashboard';
+
+            const respuesta = await authorizedFetch(url);
+
+            if (!respuesta || !respuesta.ok) {
+                throw new Error(`Error HTTP ${respuesta?.status || 'desconocido'}`);
+            }
+
+            const dashboard = await respuesta.json();
+
+            actualizarGraficoPersonasIngresos(dashboard.personasConMasIngresos);
+            actualizarGraficoOficinasOcupacion(dashboard.oficinasConMasOcupacion);
+            mostrarPersonasActualesEnOficinas(dashboard.personasActualmenteEnOficinas);
+
+        } catch (error) {
+            console.error('Error al cargar dashboard:', error);
+            throw error;
+        }
+    }
+
+    async function cargarGraficosAdicionales(params) {
+        try {
+            const registrosUrl = params ?
+                `http://localhost:8080/api/registros?${params}&size=1000` :
+                'http://localhost:8080/api/registros?size=1000';
+
+            const respuesta = await authorizedFetch(registrosUrl);
+
+            if (respuesta && respuesta.ok) {
+                const datos = await respuesta.json();
+                actualizarGraficoRegistrosPorHora(datos.registros);
+                actualizarGraficoEntradasSalidas(datos.registros);
+            }
+
+        } catch (error) {
+            console.error('Error al cargar gráficos adicionales:', error);
+        }
+    }
+
+    function actualizarTarjetaConAnimacion(elementoId, nuevoValor) {
+        const elemento = document.getElementById(elementoId);
+        if (elemento) {
+            elemento.style.transition = 'opacity 0.3s ease';
+            elemento.style.opacity = '0.5';
+
+            setTimeout(() => {
+                elemento.textContent = nuevoValor;
+                elemento.style.opacity = '1';
+            }, 150);
+        }
+    }
+
+    function actualizarGraficoPersonasIngresos(datos) {
+        const ctx = document.getElementById('chartPersonasIngresos')?.getContext('2d');
+        if (!ctx) return;
+
+        if (chartPersonasIngresos) {
+            chartPersonasIngresos.destroy();
+        }
+
+        if (datos.length === 0) {
+            mostrarMensajeSinDatos(ctx, "No hay datos de personas con ingresos");
+            return;
+        }
+
+        const labels = datos.map(item => item.nombre);
+        const valores = datos.map(item => item.cantidadIngresos);
+
+        chartPersonasIngresos = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Cantidad de Ingresos',
+                    data: valores,
+                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Top 10 Personas con Más Ingresos',
+                        font: { size: 16, weight: 'bold' }
+                    },
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    },
+                    x: {
+                        ticks: { maxRotation: 45, minRotation: 45 }
+                    }
+                },
+                animation: { duration: 1000, easing: 'easeInOutQuart' }
+            }
+        });
+    }
+
+    function actualizarGraficoOficinasOcupacion(datos) {
+        const ctx = document.getElementById('chartOficinasOcupacion')?.getContext('2d');
+        if (!ctx) return;
+
+        if (chartOficinasOcupacion) {
+            chartOficinasOcupacion.destroy();
+        }
+
+        if (datos.length === 0) {
+            mostrarMensajeSinDatos(ctx, "No hay datos de ocupación de oficinas");
+            return;
+        }
+
+        const labels = datos.map(item => item.nombre);
+        const valores = datos.map(item => item.totalIngresos);
+
+        chartOficinasOcupacion = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total de Ingresos',
+                    data: valores,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 205, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)',
+                        'rgba(199, 199, 199, 0.8)',
+                        'rgba(83, 102, 255, 0.8)'
+                    ],
+                    borderWidth: 3,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Distribución de Ingresos por Oficina',
+                        font: { size: 16, weight: 'bold' }
+                    },
+                    legend: { position: 'bottom' }
+                },
+                animation: { animateRotate: true, animateScale: true, duration: 1000 }
+            }
+        });
+    }
+
+    function actualizarGraficoRegistrosPorHora(registros) {
+        const ctx = document.getElementById('chartRegistrosPorHora')?.getContext('2d');
+        if (!ctx) return;
+
+        if (chartRegistrosPorHora) {
+            chartRegistrosPorHora.destroy();
+        }
+
+        const registrosPorHora = new Array(24).fill(0);
+
+        registros.forEach(registro => {
+            const hora = new Date(registro.fechaHora).getHours();
+            registrosPorHora[hora]++;
+        });
+
+        const labels = Array.from({length: 24}, (_, i) => `${i}:00`);
+
+        chartRegistrosPorHora = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Registros por Hora',
+                    data: registrosPorHora,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Distribución de Registros por Hora del Día',
+                        font: { size: 14, weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+    }
+
+    function actualizarGraficoEntradasSalidas(registros) {
+        const ctx = document.getElementById('chartEntradasSalidas')?.getContext('2d');
+        if (!ctx) return;
+
+        if (chartEntradasSalidas) {
+            chartEntradasSalidas.destroy();
+        }
+
+        const entradas = registros.filter(r => r.tipoMovimiento === 'ENTRADA').length;
+        const salidas = registros.filter(r => r.tipoMovimiento === 'SALIDA').length;
+
+        chartEntradasSalidas = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Entradas', 'Salidas'],
+                datasets: [{
+                    label: 'Cantidad',
+                    data: [entradas, salidas],
+                    backgroundColor: [
+                        'rgba(40, 167, 69, 0.8)',
+                        'rgba(220, 53, 69, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(40, 167, 69, 1)',
+                        'rgba(220, 53, 69, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Comparación de Entradas vs Salidas',
+                        font: { size: 14, weight: 'bold' }
+                    },
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+    }
+
+    function mostrarPersonasActualesEnOficinas(datos) {
+        const container = document.getElementById('personasActualesContainer');
+        const totalElement = document.getElementById('totalPersonasEnOficinas');
+
+        if (!container || !totalElement) return;
+
+        const totalPersonas = datos.reduce((total, oficina) => total + oficina.personasActualmente, 0);
+        totalElement.textContent = `${totalPersonas} persona${totalPersonas !== 1 ? 's' : ''}`;
+
+        if (datos.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <h5>Sin personas en oficinas</h5>
+                    <p>No hay personas registradas actualmente en ninguna oficina</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '<div class="row">';
+
+        datos.forEach(oficina => {
+            const porcentajeOcupacion = oficina.capacidadMaxima
+                ? Math.round((oficina.personasActualmente / oficina.capacidadMaxima) * 100)
+                : 0;
+
+            const colorBarra = porcentajeOcupacion >= 90 ? 'danger' :
+                porcentajeOcupacion >= 70 ? 'warning' : 'success';
+
+            html += `
+                <div class="col-lg-6 mb-3">
+                    <div class="card border-${colorBarra === 'danger' ? 'danger' : colorBarra === 'warning' ? 'warning' : 'success'}">
+                        <div class="card-header bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold">
+                                    <i class="bi bi-building text-primary me-2"></i>${oficina.nombreOficina}
+                                </h6>
+                                <span class="badge bg-primary">${oficina.personasActualmente}/${oficina.capacidadMaxima || '∞'}</span>
+                            </div>
+                            ${oficina.capacidadMaxima ? `
+                                <div class="mt-2">
+                                    <div class="progress progress-custom">
+                                        <div class="progress-bar bg-${colorBarra}" style="width: ${Math.min(porcentajeOcupacion, 100)}%"></div>
+                                    </div>
+                                    <small class="text-muted">${porcentajeOcupacion}% ocupación</small>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="card-body">
+            `;
+
+            if (oficina.personas.length === 0) {
+                html += `<p class="text-center text-muted mb-0">Sin personas actualmente</p>`;
+            } else {
+                oficina.personas.forEach(persona => {
+                    const horaEntrada = persona.horaEntrada ?
+                        new Date(persona.horaEntrada).toLocaleString('es-ES', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            day: '2-digit',
+                            month: '2-digit'
+                        }) : 'N/A';
+
+                    html += `
+                        <div class="persona-card">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-person-circle text-success me-2"></i>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold">${persona.nombre}</div>
+                                    <small class="text-muted">${persona.idUsuario} • ${horaEntrada}</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            html += `
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+
+        container.style.opacity = '0.5';
+        container.innerHTML = html;
+
+        setTimeout(() => {
+            container.style.transition = 'opacity 0.3s ease';
+            container.style.opacity = '1';
+        }, 100);
+    }
+
+    function mostrarCargandoEstadisticas() {
+        ['loadingPersonasIngresos', 'loadingOficinasOcupacion', 'loadingPersonasActuales',
+            'loadingRegistrosPorHora', 'loadingEntradasSalidas'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.style.display = 'flex';
+        });
+
+        setTimeout(() => {
+            ['loadingPersonasIngresos', 'loadingOficinasOcupacion', 'loadingPersonasActuales',
+                'loadingRegistrosPorHora', 'loadingEntradasSalidas'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.style.display = 'none';
+            });
+        }, 2000);
+    }
+
+    function mostrarMensajeSinDatos(ctx, mensaje) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "#666";
+        ctx.textAlign = "center";
+        ctx.fillText(mensaje, ctx.canvas.width / 2, ctx.canvas.height / 2);
+    }
+
+    function toggleAutoUpdate() {
+        if (autoUpdateActive) {
+            clearInterval(autoUpdateInterval);
+            autoUpdateActive = false;
+            document.getElementById('autoUpdateText').textContent = 'Activar Auto-actualización';
+            mostrarNotificacion('Auto-actualización desactivada', 'info');
+        } else {
+            autoUpdateInterval = setInterval(() => {
+                cargarEstadisticas();
+            }, 120000);
+            autoUpdateActive = true;
+            document.getElementById('autoUpdateText').textContent = 'Desactivar Auto-actualización';
+            mostrarNotificacion('Auto-actualización activada (cada 2 minutos)', 'success');
+        }
+    }
+
+    async function exportarDashboardPDF() {
+        const role = localStorage.getItem("role");
+
+        if (role !== "ROLE_ADMINISTRADOR") {
+            mostrarError('Solo los administradores pueden exportar el dashboard.');
+            return;
+        }
+
+        try {
+            mostrarNotificacion('Generando reporte del dashboard...', 'info');
+
+            const filtros = {
+                fechaDesde: document.getElementById('filtroFechaDesde').value || null,
+                fechaHasta: document.getElementById('filtroFechaHasta').value || null
+            };
+
+            const respuesta = await authorizedFetch('http://localhost:8080/api/reportes/personas/pdf', {
+                method: 'POST',
+                body: JSON.stringify(filtros)
+            });
+
+            if (!respuesta || !respuesta.ok) {
+                throw new Error(`Error HTTP ${respuesta?.status || 'desconocido'}`);
+            }
+
+            const blob = await respuesta.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dashboard-${new Date().toISOString().split('T')[0]}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            mostrarNotificacion('Dashboard exportado exitosamente', 'success');
+
+        } catch (error) {
+            console.error('Error al exportar dashboard:', error);
+            mostrarError('Error al exportar el dashboard a PDF');
+        }
+    }
+
+    async function exportarDashboardExcel() {
+        const role = localStorage.getItem("role");
+
+        if (role !== "ROLE_ADMINISTRADOR") {
+            mostrarError('Solo los administradores pueden exportar el dashboard.');
+            return;
+        }
+
+        try {
+            mostrarNotificacion('Generando reporte Excel del dashboard...', 'info');
+
+            const filtros = {
+                fechaDesde: document.getElementById('filtroFechaDesde').value || null,
+                fechaHasta: document.getElementById('filtroFechaHasta').value || null
+            };
+
+            const respuesta = await authorizedFetch('http://localhost:8080/api/reportes/personas/excel', {
+                method: 'POST',
+                body: JSON.stringify(filtros)
+            });
+
+            if (!respuesta || !respuesta.ok) {
+                throw new Error(`Error HTTP ${respuesta?.status || 'desconocido'}`);
+            }
+
+            const blob = await respuesta.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dashboard-${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            mostrarNotificacion('Dashboard exportado exitosamente', 'success');
+
+        } catch (error) {
+            console.error('Error al exportar dashboard:', error);
+            mostrarError('Error al exportar el dashboard a Excel');
+        }
+    }
+
+    function redirectBasedOnRole(role) {
+        switch (role) {
+            case "ROLE_ADMINISTRADOR":
+                window.location.href = "personaIndex.html";
+                break;
+            case "ROLE_REGISTRADOR":
+                window.location.href = "registrosIndex.html";
+                break;
+            case "ROLE_VISOR":
+                window.location.href = "personaIndex.html";
+                break;
+            default:
+                window.location.href = "login.html";
+                break;
+        }
+    }
+
+    function mostrarError(mensaje) {
+        mostrarNotificacion(mensaje, 'error');
+    }
+
+    function mostrarNotificacion(mensaje, tipo) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${tipo === 'success' ? 'success' : tipo === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            max-width: 500px;
+        `;
+        alertDiv.innerHTML = `
+            <i class="bi bi-${tipo === 'success' ? 'check-circle' : tipo === 'error' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+
+    window.addEventListener('beforeunload', function() {
+        if (autoUpdateInterval) {
+            clearInterval(autoUpdateInterval);
+        }
+
+        [chartPersonasIngresos, chartOficinasOcupacion, chartRegistrosPorHora, chartEntradasSalidas].forEach(chart => {
+            if (chart) chart.destroy();
+        });
+    });
+
+    window.cargarEstadisticas = cargarEstadisticas;
+    window.aplicarFiltrosFechas = aplicarFiltrosFechas;
+    window.limpiarFiltrosFechas = limpiarFiltrosFechas;
+    window.toggleAutoUpdate = toggleAutoUpdate;
+    window.exportarDashboardPDF = exportarDashboardPDF;
+    window.exportarDashboardExcel = exportarDashboardExcel;
 </script>
 </body>
 </html>

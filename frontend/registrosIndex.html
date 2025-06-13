@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Registros de Entrada y Salida</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Registros - Sistema de Oficinas</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
           crossorigin="anonymous">
@@ -11,77 +13,244 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
-    <script src="js/registros.js"></script>
+
+    <script src="js/authGuard.js"></script>
     <script src="js/auth.js"></script>
-    <script>verificarAutenticacion();</script>
+    <script src="js/permissions.js"></script>
+    <script src="js/registros.js"></script>
+
+    <style>
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 15px;
+        }
+
+        .card-header {
+            border-radius: 15px 15px 0 0 !important;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.5em 0.75em;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .filter-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+        }
+
+        .results-card {
+            background: white;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(253, 126, 20, 0.05);
+        }
+
+        .pagination .page-link {
+            border-radius: 8px;
+            margin: 0 2px;
+            border: 1px solid #dee2e6;
+        }
+
+        .pagination .page-link:hover {
+            background-color: #e9ecef;
+        }
+
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #fd7e14 0%, #f39c12 100%);
+            border-color: #fd7e14;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            border-radius: 15px;
+        }
+
+        .btn-group .btn {
+            margin: 0 1px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #fd7e14;
+            box-shadow: 0 0 0 0.25rem rgba(253, 126, 20, 0.25);
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, #fd7e14 0%, #f39c12 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+
+        .type-badge-entrada {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .type-badge-salida {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        .registro-row-entrada {
+            border-left: 4px solid #28a745;
+        }
+
+        .registro-row-salida {
+            border-left: 4px solid #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn-group .btn {
+                margin: 1px 0;
+            }
+        }
+
+        .empty-state {
+            padding: 4rem 2rem;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .quick-stats {
+            background: rgba(253, 126, 20, 0.1);
+            border: 1px solid rgba(253, 126, 20, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container-fluid">
         <a class="navbar-brand" href="personaIndex.html">
-            <i class="bi bi-building"></i> Sistema Oficinas
+            <i class="bi bi-building me-2"></i>Sistema de Oficinas
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="personasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-people"></i> Personas
+
+                <li class="nav-item dropdown" id="personasDropdownContainer">
+                    <a class="nav-link dropdown-toggle" href="#" id="personasDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-people me-1"></i>Personas
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="personasDropdown">
                         <li><a class="dropdown-item" href="personaIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Personas
+                            <i class="bi bi-list-ul me-2"></i>Lista de Personas
                         </a></li>
-                        <li><a class="dropdown-item" href="formPersona.html">
-                            <i class="bi bi-person-plus"></i> Agregar Persona
+                        <li><a class="dropdown-item" href="formPersona.html" id="linkAgregarPersona">
+                            <i class="bi bi-person-plus me-2"></i>Agregar Persona
                         </a></li>
                     </ul>
                 </li>
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="oficinasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-building"></i> Oficinas
+                <li class="nav-item dropdown" id="oficinasDropdownContainer">
+                    <a class="nav-link dropdown-toggle" href="#" id="oficinasDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-building me-1"></i>Oficinas
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="oficinasDropdown">
                         <li><a class="dropdown-item" href="oficinaIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Oficinas
+                            <i class="bi bi-list-ul me-2"></i>Lista de Oficinas
                         </a></li>
-                        <li><a class="dropdown-item" href="formOficina.html">
-                            <i class="bi bi-building-add"></i> Agregar Oficina
+                        <li><a class="dropdown-item" href="formOficina.html" id="linkAgregarOficina">
+                            <i class="bi bi-building-add me-2"></i>Agregar Oficina
                         </a></li>
                     </ul>
                 </li>
 
-                <!-- *** NUEVA SECCIÓN DE REGISTROS *** -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="registrosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-clock-history"></i> Registros
+                    <a class="nav-link dropdown-toggle active" href="#" id="registrosDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-clock-history me-1"></i>Registros
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="registrosDropdown">
-                        <li><a class="dropdown-item" href="registrosIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Registros
+                        <li><a class="dropdown-item active" href="registrosIndex.html">
+                            <i class="bi bi-list-ul me-2"></i>Lista de Registros
                         </a></li>
-                        <li><a class="dropdown-item" href="formRegistro.html">
-                            <i class="bi bi-plus-circle"></i> Nuevo Registro
-                        </a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="mostrarEstadisticasRapidas()">
-                            <i class="bi bi-bar-chart"></i> Estadísticas
+                        <li><a class="dropdown-item" href="formRegistro.html" id="linkNuevoRegistro">
+                            <i class="bi bi-plus-circle me-2"></i>Nuevo Registro
                         </a></li>
                     </ul>
                 </li>
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bar-chart"></i> Reportes y Estadísticas
+                <li class="nav-item dropdown" id="reportesDropdownContainer">
+                    <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bar-chart me-1"></i>Reportes
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
                         <li><a class="dropdown-item" href="reportesIndex.html">
-                            <i class="bi bi-graph-up"></i> Reportes y Estadísticas
+                            <i class="bi bi-graph-up me-2"></i>Dashboard y Estadísticas
                         </a></li>
                     </ul>
                 </li>
@@ -89,16 +258,19 @@
 
             <ul class="navbar-nav">
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="usuarioDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle"></i> <span id="nombreUsuario">Usuario</span>
+                    <a class="nav-link dropdown-toggle user-info" href="#" id="usuarioDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-1"></i>
+                        <span id="nombreUsuario">Usuario</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="usuarioDropdown">
                         <li><h6 class="dropdown-header">
+                            <i class="bi bi-shield-check me-2"></i>
                             <span id="rolUsuario">Rol</span>
                         </h6></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="logout()">
-                            <i class="bi bi-door-closed text-danger"></i> Cerrar Sesión
+                        <li><a class="dropdown-item text-danger" href="#" onclick="logout()">
+                            <i class="bi bi-door-closed me-2"></i>Cerrar Sesión
                         </a></li>
                     </ul>
                 </li>
@@ -107,8 +279,299 @@
     </div>
 </nav>
 
+<div class="container-fluid mt-4 fade-in">
+    <!-- Encabezado -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-6 fw-bold text-warning mb-2">
+                        <i class="bi bi-clock-history me-3"></i>Control de Entrada y Salida
+                    </h1>
+                    <p class="text-muted mb-0">Administra y consulta los registros de movimiento en las oficinas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card text-center">
+                <div class="h2 mb-1" id="total-registros-header">0</div>
+                <div class="small">Registros Totales</div>
+                <div class="mt-2">
+                    <i class="bi bi-arrow-right me-1"></i>
+                    <span id="registros-hoy">0</span> hoy
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4 filter-card">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-funnel-fill me-2"></i>Filtros de Búsqueda Avanzada
+            </h5>
+            <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#filtrosCollapse" aria-expanded="true">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+        </div>
+        <div class="collapse show" id="filtrosCollapse">
+            <div class="card-body">
+                <div class="row g-3">
+
+                    <div class="col-md-3">
+                        <label for="filtroPersona" class="form-label fw-semibold">
+                            <i class="bi bi-person text-primary"></i> Persona
+                        </label>
+                        <select id="filtroPersona" class="form-select">
+                            <option value="">Todas las personas</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroOficina" class="form-label fw-semibold">
+                            <i class="bi bi-building text-success"></i> Oficina
+                        </label>
+                        <select id="filtroOficina" class="form-select">
+                            <option value="">Todas las oficinas</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroTipoMovimiento" class="form-label fw-semibold">
+                            <i class="bi bi-arrow-left-right text-warning"></i> Tipo
+                        </label>
+                        <select id="filtroTipoMovimiento" class="form-select">
+                            <option value="">Todos los tipos</option>
+                            <option value="ENTRADA">Entrada</option>
+                            <option value="SALIDA">Salida</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroFechaDesde" class="form-label fw-semibold">
+                            <i class="bi bi-calendar-date text-info"></i> Desde
+                        </label>
+                        <input type="date" id="filtroFechaDesde" class="form-control">
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-md-3">
+                        <label for="filtroFechaHasta" class="form-label fw-semibold">
+                            <i class="bi bi-calendar-check text-info"></i> Hasta
+                        </label>
+                        <input type="date" id="filtroFechaHasta" class="form-control">
+                    </div>
+                    <div class="col-md-9">
+                        <label class="form-label fw-semibold">&nbsp;</label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-warning flex-fill" onclick="aplicarFiltros()">
+                                <i class="bi bi-search me-1"></i>Buscar
+                            </button>
+                            <button class="btn btn-secondary flex-fill" onclick="limpiarFiltros()">
+                                <i class="bi bi-x-circle me-1"></i>Limpiar
+                            </button>
+                            <button class="btn btn-success flex-fill" onclick="mostrarEstadisticasRapidas()">
+                                <i class="bi bi-bar-chart me-1"></i>Estadísticas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="d-flex gap-2 flex-wrap justify-content-center">
+                            <a href="formRegistro.html" class="btn btn-primary" id="btnNuevoRegistro">
+                                <i class="bi bi-plus-circle me-1"></i>Nuevo Registro
+                            </a>
+                            <button class="btn btn-danger" onclick="exportarRegistrosPDF()" id="btnExportarPDF">
+                                <i class="bi bi-file-pdf me-1"></i>Exportar PDF
+                            </button>
+                            <button class="btn btn-success" onclick="exportarRegistrosExcel()" id="btnExportarExcel">
+                                <i class="bi bi-file-excel me-1"></i>Exportar Excel
+                            </button>
+                            <button class="btn btn-info" onclick="cargarRegistros(0)" title="Actualizar datos">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4" id="quickStatsContainer" style="display: none;">
+        <div class="col-12">
+            <div class="quick-stats">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-success" id="totalEntradas">0</h4>
+                        <small class="text-muted">Entradas</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-danger" id="totalSalidas">0</h4>
+                        <small class="text-muted">Salidas</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-primary" id="personasUnicas">0</h4>
+                        <small class="text-muted">Personas Únicas</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning" id="oficinasUnicas">0</h4>
+                        <small class="text-muted">Oficinas Únicas</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card results-card position-relative">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-table me-2"></i>Historial de Registros
+            </h5>
+            <div class="d-flex align-items-center gap-3">
+                <span id="total-registros" class="badge bg-warning fs-6">0 registros</span>
+                <button class="btn btn-outline-light btn-sm" onclick="cargarRegistros(0)" title="Actualizar">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+
+            <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                <div class="text-center">
+                    <div class="spinner-border text-warning mb-3" style="width: 3rem; height: 3rem;"></div>
+                    <p class="text-muted">Cargando registros...</p>
+                </div>
+            </div>
+
+
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-dark sticky-top">
+                    <tr>
+                        <th scope="col" style="width: 80px;">
+                            <i class="bi bi-hash me-1"></i>ID
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-person me-1"></i>Persona
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-building me-1"></i>Oficina
+                        </th>
+                        <th scope="col" style="width: 120px;">
+                            <i class="bi bi-arrow-left-right me-1"></i>Tipo
+                        </th>
+                        <th scope="col" style="width: 180px;">
+                            <i class="bi bi-clock me-1"></i>Fecha y Hora
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-person-badge me-1"></i>Usuario
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-chat-text me-1"></i>Observaciones
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody id="registros-list">
+
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <div class="spinner-border text-warning" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-3 mb-0">Inicializando...</p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+            <div class="d-flex justify-content-center py-3 border-top bg-light">
+                <div id="paginacion-registros"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white-50 text-center py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-1">
+                    <i class="bi bi-clock-history me-2"></i>
+                    <strong>Sistema de Gestión de Oficinas</strong>
+                </p>
+                <small>Módulo de Control de Registros</small>
+            </div>
+            <div class="col-md-6">
+                <small>
+                    &copy; 2025 Programación IV - Universidad Nacional de Costa Rica
+                    <br>
+                    <i class="bi bi-shield-check me-1"></i>Sistema de Control de Acceso
+                </small>
+            </div>
+        </div>
+    </div>
+</footer>
+
 <script>
+    // Variables globales específicas del módulo
+    let paginaActualRegistros = 0;
+    let totalPaginasRegistros = 0;
+    const tamanoPaginaRegistros = 10;
+    let permisosUsuario = null;
+    let registrosData = [];
+    let personas = [];
+    let oficinas = [];
+
     document.addEventListener("DOMContentLoaded", function() {
+
+        verificarAutenticacion().then(isAuth => {
+            if (!isAuth) return;
+
+            verificarPermisos();
+
+            mostrarInfoUsuario();
+
+            aplicarPermisosNavegacion();
+
+            cargarDatosIniciales();
+
+            configurarFiltros();
+
+            console.log('✅ Módulo de registros inicializado correctamente');
+        });
+    });
+
+    function verificarPermisos() {
+        const role = localStorage.getItem("role");
+
+        // Todos los roles pueden ver registros
+        if (role !== "ROLE_ADMINISTRADOR" && role !== "ROLE_REGISTRADOR" && role !== "ROLE_VISOR") {
+            mostrarError("No tienes permisos para acceder a los registros.");
+            setTimeout(() => {
+                window.location.href = "login.html";
+            }, 3000);
+            return false;
+        }
+
+        switch(role) {
+            case "ROLE_ADMINISTRADOR":
+                mostrarMensajeInfoPermisos("Modo Administrador - Acceso completo con exportación y creación");
+                break;
+            case "ROLE_REGISTRADOR":
+                mostrarMensajeInfoPermisos("Modo Registrador - Acceso completo al sistema de registros");
+                break;
+            case "ROLE_VISOR":
+                mostrarMensajeInfoPermisos("Modo Visor - Solo lectura de registros, sin creación ni exportación");
+                break;
+        }
+
+        return true;
+    }
+
+    function mostrarInfoUsuario() {
         const username = localStorage.getItem("username");
         const role = localStorage.getItem("role");
 
@@ -118,99 +581,617 @@
 
         if (role) {
             let roleText = "";
+            let roleIcon = "";
+
             switch(role) {
                 case "ROLE_ADMINISTRADOR":
                     roleText = "Administrador";
+                    roleIcon = "👑";
                     break;
                 case "ROLE_REGISTRADOR":
                     roleText = "Registrador";
+                    roleIcon = "📝";
                     break;
                 case "ROLE_VISOR":
                     roleText = "Visor";
+                    roleIcon = "👁️";
                     break;
                 default:
                     roleText = role.replace("ROLE_", "");
+                    roleIcon = "👤";
             }
-            document.getElementById("rolUsuario").textContent = roleText;
+
+            document.getElementById("rolUsuario").innerHTML = `${roleIcon} ${roleText}`;
         }
-    });
-</script>
+    }
 
-<div class="container mt-4">
-    <h1 class="text-center mb-4">
-        <i class="bi bi-clock-history"></i> Control de Entrada y Salida
-    </h1>
+    function aplicarPermisosNavegacion() {
+        const role = localStorage.getItem("role");
 
-    <!-- Botón para nuevo registro -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="formRegistro.html" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Nuevo Registro
-        </a>
-    </div>
+        if (role === "ROLE_REGISTRADOR") {
 
-    <!-- Card de Resultados -->
-    <div class="card">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                <i class="bi bi-table"></i> Historial de Registros
-            </h5>
-            <span id="total-registros" class="badge bg-primary fs-6">0 registros</span>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover mb-0">
-                    <thead class="table-dark">
-                    <tr>
-                        <th><i class="bi bi-hash"></i> ID</th>
-                        <th><i class="bi bi-person"></i> Persona</th>
-                        <th><i class="bi bi-building"></i> Oficina</th>
-                        <th><i class="bi bi-arrow-left-right"></i> Tipo</th>
-                        <th><i class="bi bi-clock"></i> Fecha y Hora</th>
-                    </tr>
-                    </thead>
-                    <tbody id="registros-list">
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Cargando...</span>
-                            </div>
-                            <p class="mt-2 mb-0">Cargando registros...</p>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
+            ocultarElementos([
+                '#personasDropdownContainer',
+                '#oficinasDropdownContainer',
+                '#reportesDropdownContainer'
+            ]);
+        }
 
-            <!-- Paginación dentro de la card -->
-            <div class="d-flex justify-content-center py-3 border-top">
-                <div id="paginacion-registros"></div>
-            </div>
-        </div>
-    </div>
-</div>
+        if (role === "ROLE_VISOR") {
 
-<footer class="bg-dark text-white-50 text-center py-3 mt-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <p class="mb-1">
-                    <i class="bi bi-building"></i> Sistema de Gestión de Oficinas
-                </p>
-                <small>&copy; 2025 Progra IV - Universidad Nacional de Costa Rica</small>
-            </div>
-        </div>
-    </div>
-</footer>
+            ocultarElementos([
+                '#linkAgregarPersona',
+                '#linkAgregarOficina',
+                '#btnNuevoRegistro',
+                '#btnExportarPDF',
+                '#btnExportarExcel'
+            ]);
+        }
+    }
 
-<script type="text/javascript">
-    document.addEventListener("DOMContentLoaded", function (){
-        cargarRegistros();
-    });
+    function ocultarElementos(selectores) {
+        selectores.forEach(selector => {
+            const elemento = document.querySelector(selector);
+            if (elemento) elemento.style.display = 'none';
+        });
+    }
+
+    function mostrarMensajeInfoPermisos(mensaje) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-info alert-dismissible fade show mb-3';
+        alertDiv.innerHTML = `
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Información:</strong> ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        const container = document.querySelector('.container-fluid');
+        if (container && container.firstChild) {
+            container.insertBefore(alertDiv, container.firstChild.nextSibling);
+        }
+
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 8000);
+    }
+
+    async function cargarDatosIniciales() {
+        try {
+            await Promise.all([
+                cargarPersonasFiltro(),
+                cargarOficinasFiltro(),
+                cargarRegistros(0)
+            ]);
+
+            mostrarExito("Datos cargados correctamente");
+
+        } catch (error) {
+            console.error('Error al cargar datos iniciales:', error);
+            mostrarError("Error al inicializar el módulo");
+        }
+    }
+
+    function configurarFiltros() {
+
+        ['filtroPersona', 'filtroOficina', 'filtroTipoMovimiento'].forEach(filtroId => {
+            const filtro = document.getElementById(filtroId);
+            if (filtro) {
+                filtro.addEventListener('change', function() {
+                    aplicarFiltros();
+                });
+            }
+        });
+
+        ['filtroFechaDesde', 'filtroFechaHasta'].forEach(filtroId => {
+            const filtro = document.getElementById(filtroId);
+            if (filtro) {
+                filtro.addEventListener('change', function() {
+                    aplicarFiltros();
+                });
+            }
+        });
+    }
+
+    async function cargarPersonasFiltro() {
+        try {
+            const respuesta = await authorizedFetch('http://localhost:8080/api/personas/all');
+
+            if (!respuesta || !respuesta.ok) {
+                throw new Error(`Error HTTP ${respuesta?.status || 'desconocido'}`);
+            }
+
+            personas = await respuesta.json();
+            const select = document.getElementById("filtroPersona");
+
+            if (select) {
+                select.innerHTML = '<option value="">Todas las personas</option>';
+                personas.forEach(persona => {
+                    const option = document.createElement('option');
+                    option.value = persona.idAuto;
+                    option.textContent = `${persona.nombre} - ${persona.idUsuario}`;
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar personas:', error);
+        }
+    }
+
+    async function cargarOficinasFiltro() {
+        try {
+            const respuesta = await authorizedFetch('http://localhost:8080/api/oficinas');
+
+            if (!respuesta || !respuesta.ok) {
+                throw new Error(`Error HTTP ${respuesta?.status || 'desconocido'}`);
+            }
+
+            oficinas = await respuesta.json();
+            const select = document.getElementById("filtroOficina");
+
+            if (select) {
+                select.innerHTML = '<option value="">Todas las oficinas</option>';
+                oficinas.forEach(oficina => {
+                    const option = document.createElement('option');
+                    option.value = oficina.idOficina;
+                    option.textContent = oficina.nombre;
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar oficinas:', error);
+        }
+    }
+
+    function obtenerFiltros() {
+        return {
+            personaId: document.getElementById("filtroPersona")?.value || null,
+            oficinaId: document.getElementById("filtroOficina")?.value || null,
+            tipoMovimiento: document.getElementById("filtroTipoMovimiento")?.value || null,
+            fechaDesde: document.getElementById("filtroFechaDesde")?.value || null,
+            fechaHasta: document.getElementById("filtroFechaHasta")?.value || null,
+            page: paginaActualRegistros,
+            size: tamanoPaginaRegistros,
+            sortBy: 'fechaHora',
+            sortDirection: 'desc'
+        };
+    }
+
+    function aplicarFiltros() {
+        console.log('Aplicando filtros...');
+        paginaActualRegistros = 0;
+        cargarRegistros(0);
+    }
+
+    function limpiarFiltros() {
+        console.log('Limpiando filtros...');
+
+        const campos = ['filtroPersona', 'filtroOficina', 'filtroTipoMovimiento', 'filtroFechaDesde', 'filtroFechaHasta'];
+
+        campos.forEach(campoId => {
+            const campo = document.getElementById(campoId);
+            if (campo) {
+                campo.value = "";
+            }
+        });
+
+        paginaActualRegistros = 0;
+        cargarRegistros(0);
+    }
+
+    async function cargarRegistros(pagina = 0) {
+        mostrarCargando();
+
+        const filtros = obtenerFiltros();
+        filtros.page = pagina;
+
+        const params = new URLSearchParams();
+        Object.keys(filtros).forEach(key => {
+            if (filtros[key] !== null && filtros[key] !== '' && filtros[key] !== undefined) {
+                params.append(key, filtros[key]);
+            }
+        });
+
+        console.log('Parámetros enviados:', params.toString());
+
+        try {
+            const respuesta = await authorizedFetch(`http://localhost:8080/api/registros?${params.toString()}`);
+
+            if (!respuesta || !respuesta.ok) {
+                throw new Error(`Error HTTP ${respuesta?.status || 'desconocido'}`);
+            }
+
+            const resultado = await respuesta.json();
+            console.log('Resultado obtenido:', resultado);
+
+            registrosData = resultado.registros;
+            mostrarRegistros(resultado);
+            actualizarPaginacion(resultado);
+            calcularEstadisticasRapidas(resultado.registros);
+
+        } catch (error) {
+            console.error('Error al cargar registros:', error);
+            mostrarErrorEnTabla();
+            mostrarError('Error al cargar registros. Verifique su conexión.');
+        }
+    }
+
+    function mostrarCargando() {
+        const tbody = document.getElementById("registros-list");
+        const overlay = document.getElementById('loadingOverlay');
+
+        if (overlay) overlay.style.display = 'flex';
+
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        <div class="spinner-border text-warning" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2 mb-0">Cargando registros...</p>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    function mostrarErrorEnTabla() {
+        const tbody = document.getElementById("registros-list");
+        const overlay = document.getElementById('loadingOverlay');
+
+        if (overlay) overlay.style.display = 'none';
+
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-danger py-4">
+                        <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">Error al cargar los registros</p>
+                        <small class="text-muted">Verifique su conexión a internet</small>
+                        <br>
+                        <button class="btn btn-outline-warning btn-sm mt-2" onclick="cargarRegistros(${paginaActualRegistros})">
+                            <i class="bi bi-arrow-clockwise"></i> Reintentar
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    function mostrarRegistros(resultado) {
+        const tbody = document.getElementById("registros-list");
+        const totalElement = document.getElementById("total-registros");
+        const totalHeaderElement = document.getElementById("total-registros-header");
+        const overlay = document.getElementById('loadingOverlay');
+
+        if (overlay) overlay.style.display = 'none';
+
+        if (totalElement) {
+            totalElement.textContent = `${resultado.totalItems} registro${resultado.totalItems !== 1 ? 's' : ''}`;
+        }
+
+        if (totalHeaderElement) {
+            totalHeaderElement.textContent = resultado.totalItems;
+        }
+
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+
+        if (resultado.registros.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <h4>No se encontraron registros</h4>
+                            <p>No hay registros que coincidan con los filtros aplicados</p>
+                            <button class="btn btn-warning" onclick="limpiarFiltros()">
+                                <i class="bi bi-funnel"></i> Limpiar Filtros
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        resultado.registros.forEach((registro) => {
+            const fechaFormateada = formatearFechaHora(registro.fechaHora);
+            const tipoClass = registro.tipoMovimiento === 'ENTRADA' ? 'type-badge-entrada' : 'type-badge-salida';
+            const tipoIcon = registro.tipoMovimiento === 'ENTRADA' ? 'box-arrow-in-right' : 'box-arrow-right';
+            const rowClass = registro.tipoMovimiento === 'ENTRADA' ? 'registro-row-entrada' : 'registro-row-salida';
+
+            let fila = `<tr class="${rowClass}">
+                <td><strong>${registro.id}</strong></td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-person-circle text-primary me-2"></i>
+                        <div>
+                            <strong>${registro.persona.nombre}</strong><br>
+                            <small class="text-muted">${registro.persona.idUsuario}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge bg-info">
+                        <i class="bi bi-building me-1"></i>${registro.oficina.nombre}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <span class="badge ${tipoClass}">
+                        <i class="bi bi-${tipoIcon} me-1"></i>${registro.tipoMovimiento}
+                    </span>
+                </td>
+                <td>
+                    <strong>
+                        <i class="bi bi-clock me-1"></i>${fechaFormateada}
+                    </strong>
+                </td>
+                <td>
+                    <small class="text-muted">
+                        <i class="bi bi-person-badge me-1"></i>${registro.usuarioRegistro || 'Sistema'}
+                    </small>
+                </td>
+                <td>
+                    <small class="text-muted">
+                        ${registro.observaciones || '<em>Sin observaciones</em>'}
+                    </small>
+                </td>
+            </tr>`;
+            tbody.innerHTML += fila;
+        });
+    }
+
+    function actualizarPaginacion(resultado) {
+        paginaActualRegistros = resultado.currentPage;
+        totalPaginasRegistros = resultado.totalPages;
+        crearPaginacion();
+    }
+
+    function crearPaginacion() {
+        const paginacionContainer = document.getElementById("paginacion-registros");
+        if (!paginacionContainer || totalPaginasRegistros <= 1) {
+            if (paginacionContainer) paginacionContainer.innerHTML = "";
+            return;
+        }
+
+        let paginacionHtml = '<nav aria-label="Paginación de registros"><ul class="pagination justify-content-center">';
+
+        paginacionHtml += `
+            <li class="page-item ${paginaActualRegistros === 0 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="cambiarPagina(${paginaActualRegistros - 1}); return false;">
+                    <i class="bi bi-chevron-left"></i> Anterior
+                </a>
+            </li>
+        `;
+
+        const inicio = Math.max(0, paginaActualRegistros - 2);
+        const fin = Math.min(totalPaginasRegistros - 1, paginaActualRegistros + 2);
+
+        for (let i = inicio; i <= fin; i++) {
+            paginacionHtml += `
+                <li class="page-item ${i === paginaActualRegistros ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="cambiarPagina(${i}); return false;">${i + 1}</a>
+                </li>
+            `;
+        }
+
+        paginacionHtml += `
+            <li class="page-item ${paginaActualRegistros === totalPaginasRegistros - 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="cambiarPagina(${paginaActualRegistros + 1}); return false;">
+                    Siguiente <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        `;
+
+        paginacionHtml += '</ul></nav>';
+        paginacionContainer.innerHTML = paginacionHtml;
+    }
+
+    function cambiarPagina(pagina) {
+        if (pagina >= 0 && pagina < totalPaginasRegistros) {
+            cargarRegistros(pagina);
+        }
+    }
+
+    function calcularEstadisticasRapidas(registros) {
+        const entradas = registros.filter(r => r.tipoMovimiento === 'ENTRADA').length;
+        const salidas = registros.filter(r => r.tipoMovimiento === 'SALIDA').length;
+        const personasUnicas = new Set(registros.map(r => r.persona.idAuto)).size;
+        const oficinasUnicas = new Set(registros.map(r => r.oficina.idOficina)).size;
+
+        document.getElementById('totalEntradas').textContent = entradas;
+        document.getElementById('totalSalidas').textContent = salidas;
+        document.getElementById('personasUnicas').textContent = personasUnicas;
+        document.getElementById('oficinasUnicas').textContent = oficinasUnicas;
+
+        const container = document.getElementById('quickStatsContainer');
+        if (container) {
+            container.style.display = registros.length > 0 ? 'block' : 'none';
+        }
+
+        const hoy = new Date().toDateString();
+        const registrosHoy = registros.filter(r => {
+            const fechaRegistro = new Date(r.fechaHora).toDateString();
+            return fechaRegistro === hoy;
+        }).length;
+
+        document.getElementById('registros-hoy').textContent = registrosHoy;
+    }
+
+    async function exportarRegistrosPDF() {
+        const role = localStorage.getItem("role");
+
+        if (role === "ROLE_VISOR") {
+            mostrarError('No tienes permisos para exportar registros.');
+            return;
+        }
+
+        const filtros = obtenerFiltros();
+        delete filtros.page;
+        delete filtros.size;
+        delete filtros.sortBy;
+        delete filtros.sortDirection;
+
+        try {
+            mostrarNotificacion('Generando reporte PDF...', 'info');
+
+            const respuesta = await authorizedFetch('http://localhost:8080/api/reportes/registros/pdf', {
+                method: 'POST',
+                body: JSON.stringify(filtros)
+            });
+
+            if (!respuesta || !respuesta.ok) {
+                throw new Error(`Error HTTP ${respuesta?.status || 'desconocido'}`);
+            }
+
+            const blob = await respuesta.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `registros-${new Date().toISOString().split('T')[0]}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            mostrarNotificacion('Reporte PDF generado exitosamente', 'success');
+
+        } catch (error) {
+            console.error('Error al exportar PDF:', error);
+            mostrarError('Error al generar el reporte PDF');
+        }
+    }
+
+    async function exportarRegistrosExcel() {
+        const role = localStorage.getItem("role");
+
+        if (role === "ROLE_VISOR") {
+            mostrarError('No tienes permisos para exportar registros.');
+            return;
+        }
+
+        const filtros = obtenerFiltros();
+        delete filtros.page;
+        delete filtros.size;
+        delete filtros.sortBy;
+        delete filtros.sortDirection;
+
+        try {
+            mostrarNotificacion('Generando reporte Excel...', 'info');
+
+            const respuesta = await authorizedFetch('http://localhost:8080/api/reportes/registros/excel', {
+                method: 'POST',
+                body: JSON.stringify(filtros)
+            });
+
+            if (!respuesta || !respuesta.ok) {
+                throw new Error(`Error HTTP ${respuesta?.status || 'desconocido'}`);
+            }
+
+            const blob = await respuesta.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `registros-${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            mostrarNotificacion('Reporte Excel generado exitosamente', 'success');
+
+        } catch (error) {
+            console.error('Error al exportar Excel:', error);
+            mostrarError('Error al generar el reporte Excel');
+        }
+    }
 
     function mostrarEstadisticasRapidas() {
-        const totalRegistros = document.getElementById("total-registros").textContent;
-        alert(`📊 Estadísticas rápidas:\n\n${totalRegistros} en el sistema\n\n¡Panel de estadísticas avanzadas próximamente!`);
+        const mensaje = `
+            📊 ESTADÍSTICAS RÁPIDAS
+
+            📈 REGISTROS ACTUALES:
+            • Total: ${document.getElementById('total-registros-header').textContent} registros
+            • Entradas: ${document.getElementById('totalEntradas').textContent}
+            • Salidas: ${document.getElementById('totalSalidas').textContent}
+            • Hoy: ${document.getElementById('registros-hoy').textContent}
+
+            👥 PERSONAS Y OFICINAS:
+            • Personas diferentes: ${document.getElementById('personasUnicas').textContent}
+            • Oficinas diferentes: ${document.getElementById('oficinasUnicas').textContent}
+
+            🎯 FUNCIONALIDADES:
+            • Filtros avanzados por múltiples criterios
+            • Exportación a PDF y Excel (Admin/Registrador)
+            • Paginación automática
+            • Actualización en tiempo real
+
+            💡 TIP: Usa los filtros para análisis específicos
+        `;
+
+        alert(mensaje);
     }
+
+    // Función para formatear fecha y hora
+    function formatearFechaHora(fechaHoraString) {
+        try {
+            const fecha = new Date(fechaHoraString);
+            return fecha.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (error) {
+            return fechaHoraString;
+        }
+    }
+
+    function mostrarExito(mensaje) {
+        mostrarNotificacion(mensaje, 'success');
+    }
+
+    function mostrarError(mensaje) {
+        mostrarNotificacion(mensaje, 'error');
+    }
+
+    function mostrarNotificacion(mensaje, tipo) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${tipo === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            max-width: 500px;
+        `;
+        alertDiv.innerHTML = `
+            <i class="bi bi-${tipo === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+
+    window.aplicarFiltros = aplicarFiltros;
+    window.limpiarFiltros = limpiarFiltros;
+    window.cargarRegistros = cargarRegistros;
+    window.cambiarPagina = cambiarPagina;
+    window.exportarRegistrosPDF = exportarRegistrosPDF;
+    window.exportarRegistrosExcel = exportarRegistrosExcel;
+    window.mostrarEstadisticasRapidas = mostrarEstadisticasRapidas;
 </script>
 </body>
 </html>

@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Lista de Personas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Personas - Sistema de Oficinas</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
           crossorigin="anonymous">
@@ -11,77 +13,199 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
-    <script src="js/persona.js"></script>
+
+    <script src="js/authGuard.js"></script>
     <script src="js/auth.js"></script>
-    <script>verificarAutenticacion();</script>
+    <script src="js/persona.js"></script>
+
+    <style>
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 15px;
+        }
+
+        .card-header {
+            border-radius: 15px 15px 0 0 !important;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.5em 0.75em;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .filter-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+        }
+
+        .results-card {
+            background: white;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,123,255,0.05);
+        }
+
+        .pagination .page-link {
+            border-radius: 8px;
+            margin: 0 2px;
+            border: 1px solid #dee2e6;
+        }
+
+        .pagination .page-link:hover {
+            background-color: #e9ecef;
+        }
+
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border-color: #007bff;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            border-radius: 15px;
+        }
+
+        .btn-group .btn {
+            margin: 0 1px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.25rem rgba(0,123,255,0.25);
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn-group .btn {
+                margin: 1px 0;
+            }
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container-fluid">
         <a class="navbar-brand" href="personaIndex.html">
-            <i class="bi bi-building"></i> Sistema Oficinas
+            <i class="bi bi-building me-2"></i>Sistema de Oficinas
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="personasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-people"></i> Personas
+
+                <li class="nav-item dropdown" id="personasDropdownContainer">
+                    <a class="nav-link dropdown-toggle active" href="#" id="personasDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-people me-1"></i>Personas
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="personasDropdown">
-                        <li><a class="dropdown-item" href="personaIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Personas
+                        <li><a class="dropdown-item active" href="personaIndex.html">
+                            <i class="bi bi-list-ul me-2"></i>Lista de Personas
                         </a></li>
-                        <li><a class="dropdown-item" href="formPersona.html">
-                            <i class="bi bi-person-plus"></i> Agregar Persona
+                        <li><a class="dropdown-item" href="formPersona.html" id="linkAgregarPersona">
+                            <i class="bi bi-person-plus me-2"></i>Agregar Persona
                         </a></li>
                     </ul>
                 </li>
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="oficinasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-building"></i> Oficinas
+                <li class="nav-item dropdown" id="oficinasDropdownContainer">
+                    <a class="nav-link dropdown-toggle" href="#" id="oficinasDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-building me-1"></i>Oficinas
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="oficinasDropdown">
                         <li><a class="dropdown-item" href="oficinaIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Oficinas
+                            <i class="bi bi-list-ul me-2"></i>Lista de Oficinas
                         </a></li>
-                        <li><a class="dropdown-item" href="formOficina.html">
-                            <i class="bi bi-building-add"></i> Agregar Oficina
+                        <li><a class="dropdown-item" href="formOficina.html" id="linkAgregarOficina">
+                            <i class="bi bi-building-add me-2"></i>Agregar Oficina
                         </a></li>
                     </ul>
                 </li>
 
-                <!-- *** NUEVA SECCIÓN DE REGISTROS *** -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="registrosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-clock-history"></i> Registros
+                    <a class="nav-link dropdown-toggle" href="#" id="registrosDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-clock-history me-1"></i>Registros
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="registrosDropdown">
                         <li><a class="dropdown-item" href="registrosIndex.html">
-                            <i class="bi bi-list-ul"></i> Lista de Registros
+                            <i class="bi bi-list-ul me-2"></i>Lista de Registros
                         </a></li>
-                        <li><a class="dropdown-item" href="formRegistro.html">
-                            <i class="bi bi-plus-circle"></i> Nuevo Registro
-                        </a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="mostrarEstadisticasRapidas()">
-                            <i class="bi bi-bar-chart"></i> Estadísticas
+                        <li><a class="dropdown-item" href="formRegistro.html" id="linkNuevoRegistro">
+                            <i class="bi bi-plus-circle me-2"></i>Nuevo Registro
                         </a></li>
                     </ul>
                 </li>
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bar-chart"></i> Reportes y Estadísticas
+                <li class="nav-item dropdown" id="reportesDropdownContainer">
+                    <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bar-chart me-1"></i>Reportes
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
                         <li><a class="dropdown-item" href="reportesIndex.html">
-                            <i class="bi bi-graph-up"></i> Reportes y Estadísticas
+                            <i class="bi bi-graph-up me-2"></i>Dashboard y Estadísticas
                         </a></li>
                     </ul>
                 </li>
@@ -89,16 +213,19 @@
 
             <ul class="navbar-nav">
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="usuarioDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle"></i> <span id="nombreUsuario">Usuario</span>
+                    <a class="nav-link dropdown-toggle user-info" href="#" id="usuarioDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-1"></i>
+                        <span id="nombreUsuario">Usuario</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="usuarioDropdown">
                         <li><h6 class="dropdown-header">
+                            <i class="bi bi-shield-check me-2"></i>
                             <span id="rolUsuario">Rol</span>
                         </h6></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="logout()">
-                            <i class="bi bi-door-closed text-danger"></i> Cerrar Sesión
+                        <li><a class="dropdown-item text-danger" href="#" onclick="logout()">
+                            <i class="bi bi-door-closed me-2"></i>Cerrar Sesión
                         </a></li>
                     </ul>
                 </li>
@@ -107,8 +234,227 @@
     </div>
 </nav>
 
+<div class="container-fluid mt-4 fade-in">
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-6 fw-bold text-primary mb-2">
+                        <i class="bi bi-people-fill me-3"></i>Gestión de Personas
+                    </h1>
+                    <p class="text-muted mb-0">Administra y consulta la información de las personas registradas</p>
+                </div>
+                <div class="d-none d-md-block">
+                    <div class="text-end">
+                        <div class="h4 mb-1 text-primary" id="total-personas-header">0 personas</div>
+                        <small class="text-muted">Total registradas</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4 filter-card">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-funnel-fill me-2"></i>Filtros de Búsqueda
+            </h5>
+            <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#filtrosCollapse" aria-expanded="true">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+        </div>
+        <div class="collapse show" id="filtrosCollapse">
+            <div class="card-body">
+                <div class="row g-3">
+
+                    <div class="col-md-3">
+                        <label for="filtroNombre" class="form-label fw-semibold">
+                            <i class="bi bi-person text-primary"></i> Nombre
+                        </label>
+                        <input type="text" id="filtroNombre" class="form-control"
+                               placeholder="Buscar por nombre...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroEmail" class="form-label fw-semibold">
+                            <i class="bi bi-envelope text-primary"></i> Email
+                        </label>
+                        <input type="email" id="filtroEmail" class="form-control"
+                               placeholder="Buscar por email...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroDireccion" class="form-label fw-semibold">
+                            <i class="bi bi-geo-alt text-primary"></i> Dirección
+                        </label>
+                        <input type="text" id="filtroDireccion" class="form-control"
+                               placeholder="Buscar por dirección...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroIdUsuario" class="form-label fw-semibold">
+                            <i class="bi bi-card-text text-primary"></i> ID Usuario
+                        </label>
+                        <input type="text" id="filtroIdUsuario" class="form-control"
+                               placeholder="Buscar por ID...">
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-md-4">
+                        <label for="filtroOficina" class="form-label fw-semibold">
+                            <i class="bi bi-building text-primary"></i> Oficina
+                        </label>
+                        <select id="filtroOficina" class="form-select">
+                            <option value="">Todas las oficinas</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="fechaNacimiento" class="form-label fw-semibold">
+                            <i class="bi bi-calendar-date text-primary"></i> Fecha de Nacimiento
+                        </label>
+                        <input type="date" id="fechaNacimiento" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">&nbsp;</label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-primary flex-fill" onclick="aplicarFiltros()">
+                                <i class="bi bi-search me-1"></i>Buscar
+                            </button>
+                            <button class="btn btn-secondary flex-fill" onclick="limpiarFiltros()">
+                                <i class="bi bi-x-circle me-1"></i>Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="d-flex gap-2 flex-wrap justify-content-center">
+                            <a href="formPersona.html" class="btn btn-success" id="btnAgregarPersona">
+                                <i class="bi bi-person-plus me-1"></i>Agregar Persona
+                            </a>
+                            <button class="btn btn-danger" onclick="exportarPDF()" id="btnExportarPDF">
+                                <i class="bi bi-file-pdf me-1"></i>Exportar PDF
+                            </button>
+                            <button class="btn btn-success" onclick="exportarExcel()" id="btnExportarExcel">
+                                <i class="bi bi-file-excel me-1"></i>Exportar Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card results-card position-relative">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-table me-2"></i>Lista de Personas
+            </h5>
+            <div class="d-flex align-items-center gap-3">
+                <span id="total-personas" class="badge bg-primary fs-6">0 personas</span>
+                <button class="btn btn-outline-light btn-sm" onclick="cargarPersonas(0)" title="Actualizar">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+
+            <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                <div class="text-center">
+                    <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+                    <p class="text-muted">Cargando personas...</p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-dark sticky-top">
+                    <tr>
+                        <th scope="col">
+                            <i class="bi bi-hash me-1"></i>ID
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-card-text me-1"></i>ID Usuario
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-person me-1"></i>Nombre
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-envelope me-1"></i>Correo
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-geo-alt me-1"></i>Dirección
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-calendar-date me-1"></i>F. Nacimiento
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-building me-1"></i>Oficina
+                        </th>
+                        <th scope="col" class="text-center">
+                            <i class="bi bi-gear me-1"></i>Acciones
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody id="personas-list">
+
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-3 mb-0">Inicializando...</p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-center py-3 border-top bg-light">
+                <div id="paginacion-personas"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-dark text-white-50 text-center py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-1">
+                    <i class="bi bi-building me-2"></i>
+                    <strong>Sistema de Gestión de Oficinas</strong>
+                </p>
+                <small>Módulo de Gestión de Personas</small>
+            </div>
+            <div class="col-md-6">
+                <small>
+                    &copy; 2025 Programación IV - Universidad Nacional de Costa Rica
+                    <br>
+                    <i class="bi bi-code-slash me-1"></i>Proyecto Final
+                </small>
+            </div>
+        </div>
+    </div>
+</footer>
+
 <script>
+
     document.addEventListener("DOMContentLoaded", function() {
+
+        verificarAutenticacion().then(isAuth => {
+            if (!isAuth) return;
+
+            mostrarInfoUsuario();
+
+            aplicarPermisosNavegacion();
+
+            console.log('✅ Página de personas inicializada correctamente');
+        });
+    });
+
+    function mostrarInfoUsuario() {
         const username = localStorage.getItem("username");
         const role = localStorage.getItem("role");
 
@@ -118,163 +464,128 @@
 
         if (role) {
             let roleText = "";
+            let roleIcon = "";
+
             switch(role) {
                 case "ROLE_ADMINISTRADOR":
                     roleText = "Administrador";
+                    roleIcon = "👑";
                     break;
                 case "ROLE_REGISTRADOR":
                     roleText = "Registrador";
+                    roleIcon = "📝";
                     break;
                 case "ROLE_VISOR":
                     roleText = "Visor";
+                    roleIcon = "👁️";
                     break;
                 default:
                     roleText = role.replace("ROLE_", "");
+                    roleIcon = "👤";
             }
-            document.getElementById("rolUsuario").textContent = roleText;
+
+            document.getElementById("rolUsuario").innerHTML = `${roleIcon} ${roleText}`;
         }
-    });
-</script>
+    }
 
-<div class="container mt-4">
-    <h1 class="text-center mb-4">
-        <i class="bi bi-people-fill"></i> Gestión de Personas
-    </h1>
+    function aplicarPermisosNavegacion() {
+        const role = localStorage.getItem("role");
 
-    <!-- Card de Filtros -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-funnel-fill"></i> Filtros de Búsqueda</h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label for="filtroNombre" class="form-label">
-                        <i class="bi bi-person"></i> Nombre
-                    </label>
-                    <input type="text" id="filtroNombre" class="form-control" placeholder="Buscar por nombre">
-                </div>
-                <div class="col-md-3">
-                    <label for="filtroEmail" class="form-label">
-                        <i class="bi bi-envelope"></i> Email
-                    </label>
-                    <input type="email" id="filtroEmail" class="form-control" placeholder="Buscar por email">
-                </div>
-                <div class="col-md-3">
-                    <label for="filtroDireccion" class="form-label">
-                        <i class="bi bi-geo-alt"></i> Dirección
-                    </label>
-                    <input type="text" id="filtroDireccion" class="form-control" placeholder="Buscar por dirección">
-                </div>
-                <div class="col-md-3">
-                    <label for="filtroIdUsuario" class="form-label">
-                        <i class="bi bi-card-text"></i> ID Usuario
-                    </label>
-                    <input type="text" id="filtroIdUsuario" class="form-control" placeholder="Buscar por ID usuario">
-                </div>
-            </div>
-            <div class="row g-3 mt-2">
-                <div class="col-md-3">
-                    <label for="filtroOficina" class="form-label">
-                        <i class="bi bi-building"></i> Oficina
-                    </label>
-                    <select id="filtroOficina" class="form-select">
-                        <option value="">Todas las oficinas</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="fechaNacimiento" class="form-label">
-                        <i class="bi bi-calendar-date"></i> Fecha de Nacimiento
-                    </label>
-                    <input type="date" id="fechaNacimiento" class="form-control">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">&nbsp;</label>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button class="btn btn-primary" onclick="aplicarFiltros()">
-                            <i class="bi bi-search"></i> Buscar
-                        </button>
-                        <button class="btn btn-secondary" onclick="limpiarFiltros()">
-                            <i class="bi bi-x-circle"></i> Limpiar
-                        </button>
-                        <button class="btn btn-success" onclick="exportarExcel()">
-                            <i class="bi bi-file-excel"></i> Excel
-                        </button>
-                        <button class="btn btn-danger" onclick="exportarPDF()">
-                            <i class="bi bi-file-pdf"></i> PDF
-                        </button>
-                        <a href="formPersona.html" class="btn btn-info">
-                            <i class="bi bi-person-plus"></i> Agregar
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Card de Resultados -->
-    <div class="card">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                <i class="bi bi-table"></i> Lista de Personas
-            </h5>
-            <span id="total-personas" class="badge bg-primary fs-6">0 personas</span>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover mb-0">
-                    <thead class="table-dark">
+        if (role === "ROLE_REGISTRADOR") {
+
+            const elementosOcultar = [
+                '#personasDropdownContainer',
+                '#oficinasDropdownContainer',
+                '#reportesDropdownContainer'
+            ];
+
+            elementosOcultar.forEach(selector => {
+                const elemento = document.querySelector(selector);
+                if (elemento) elemento.style.display = 'none';
+            });
+        }
+
+        if (role === "ROLE_VISOR") {
+
+            const elementosOcultar = [
+                '#linkAgregarPersona',
+                '#linkAgregarOficina'
+            ];
+
+            elementosOcultar.forEach(selector => {
+                const elemento = document.querySelector(selector);
+                if (elemento) elemento.style.display = 'none';
+            });
+        }
+    }
+
+    function actualizarContadorHeader(total) {
+        const headerCounter = document.getElementById("total-personas-header");
+        if (headerCounter) {
+            headerCounter.textContent = `${total} persona${total !== 1 ? 's' : ''}`;
+        }
+    }
+
+    const mostrarPersonasOriginal = window.mostrarPersonas;
+    if (mostrarPersonasOriginal) {
+        window.mostrarPersonas = function(resultado) {
+            mostrarPersonasOriginal(resultado);
+            actualizarContadorHeader(resultado.totalItems);
+        };
+    }
+
+    function mostrarOverlayCarga(mostrar = true) {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            overlay.style.display = mostrar ? 'flex' : 'none';
+        }
+    }
+
+    if (window.cargarPersonas) {
+        const cargarPersonasOriginal = window.cargarPersonas;
+        window.cargarPersonas = async function(pagina = 0) {
+            mostrarOverlayCarga(true);
+            try {
+                await cargarPersonasOriginal(pagina);
+            } finally {
+                setTimeout(() => mostrarOverlayCarga(false), 500);
+            }
+        };
+    }
+
+    function manejarErrorRed(error) {
+        console.error('Error de red:', error);
+
+        const tbody = document.getElementById("personas-list");
+        if (tbody) {
+            tbody.innerHTML = `
                     <tr>
-                        <th><i class="bi bi-hash"></i> ID</th>
-                        <th><i class="bi bi-card-text"></i> ID Usuario</th>
-                        <th><i class="bi bi-person"></i> Nombre</th>
-                        <th><i class="bi bi-envelope"></i> Correo</th>
-                        <th><i class="bi bi-geo-alt"></i> Dirección</th>
-                        <th><i class="bi bi-calendar-date"></i> Fecha Nacimiento</th>
-                        <th><i class="bi bi-building"></i> Oficina</th>
-                        <th class="text-center"><i class="bi bi-gear"></i> Acciones</th>
-                    </tr>
-                    </thead>
-                    <tbody id="personas-list">
-                    <tr>
-                        <td colspan="8" class="text-center text-muted py-4">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Cargando...</span>
-                            </div>
-                            <p class="mt-2 mb-0">Cargando personas...</p>
+                        <td colspan="8" class="text-center text-danger py-5">
+                            <i class="bi bi-wifi-off" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3">Error de Conexión</h5>
+                            <p class="text-muted">No se pudo conectar con el servidor</p>
+                            <button class="btn btn-primary" onclick="window.location.reload()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Reintentar
+                            </button>
                         </td>
                     </tr>
-                    </tbody>
-                </table>
-            </div>
+                `;
+        }
+    }
 
-            <!-- Paginación dentro de la card -->
-            <div class="d-flex justify-content-center py-3 border-top">
-                <div id="paginacion-personas"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<footer class="bg-dark text-white-50 text-center py-3 mt-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <p class="mb-1">
-                    <i class="bi bi-building"></i> Sistema de Gestión de Oficinas
-                </p>
-                <small>&copy; 2025 Progra IV - Universidad Nacional de Costa Rica</small>
-            </div>
-        </div>
-    </div>
-</footer>
-
-<script type="text/javascript">
-    document.addEventListener("DOMContentLoaded", function (){
-        cargarOficinasFiltro();
-        cargarPersonas();
-        localStorage.removeItem("editIndex");
+    window.addEventListener('error', function(e) {
+        if (e.message.includes('fetch')) {
+            manejarErrorRed(e);
+        }
     });
+
+    setInterval(function() {
+        if (document.visibilityState === 'visible') {
+            console.log('🔄 Auto-actualizando datos de personas...');
+            cargarPersonas(0);
+        }
+    }, 300000);
 </script>
 </body>
 </html>
