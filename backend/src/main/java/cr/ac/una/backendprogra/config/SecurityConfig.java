@@ -33,8 +33,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/ws/**").permitAll()
+
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -45,6 +46,17 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/actuator/**"
                         ).permitAll()
+
+                        .requestMatchers("GET", "/api/personas/**").hasAnyRole("ADMINISTRADOR", "VISOR")
+                        .requestMatchers("GET", "/api/oficinas/**").hasAnyRole("ADMINISTRADOR", "VISOR")
+
+                        .requestMatchers("POST", "/api/personas/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("PUT", "/api/personas/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("DELETE", "/api/personas/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("POST", "/api/oficinas/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("PUT", "/api/oficinas/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("DELETE", "/api/oficinas/**").hasRole("ADMINISTRADOR")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

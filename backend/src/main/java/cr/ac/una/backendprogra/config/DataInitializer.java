@@ -21,11 +21,21 @@ public class DataInitializer {
     CommandLineRunner initDatabase() {
         return args -> {
             if (usuarioRepository.count() == 0) {
-                Usuario admin = new Usuario("admin", passwordEncoder.encode("1234"), "ROLE_ADMIN");
-                Usuario user = new Usuario("user", passwordEncoder.encode("1234"), "ROLE_USER");
+
+                Usuario admin = new Usuario("admin", passwordEncoder.encode("1234"), "ROLE_ADMINISTRADOR");
+
+                Usuario registrador = new Usuario("registrador", passwordEncoder.encode("12345"), "ROLE_REGISTRADOR");
+
+                Usuario visor = new Usuario("visor", passwordEncoder.encode("123456"), "ROLE_VISOR");
+
                 usuarioRepository.save(admin);
-                usuarioRepository.save(user);
-                System.out.println("Usuarios iniciales creados con contraseñas encriptadas");
+                usuarioRepository.save(registrador);
+                usuarioRepository.save(visor);
+
+                System.out.println("Usuarios creados:");
+                System.out.println("- admin / 1234 (ADMINISTRADOR)");
+                System.out.println("- registrador / 12345 (REGISTRADOR)");
+                System.out.println("- visor / 123456 (VISOR)");
             }
         };
     }

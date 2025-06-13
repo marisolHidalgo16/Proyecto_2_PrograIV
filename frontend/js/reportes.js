@@ -1,0 +1,276 @@
+let paginaActual = 0;
+let totalPaginas = 0;
+const tamanoPagina = 10;
+
+async function cargarOficinas() {
+    const token = localStorage.getItem("jwt");
+
+    try {
+        const respuesta = await fetch('http://localhost:8080/api/oficinas', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!respuesta.ok) {
+            throw new Error(`HTTP ${respuesta.status}`);
+        }
+
+        const oficinas = await respuesta.json();
+        const select = document.getElementById("filtroOficina");
+
+        select.innerHTML = '<option value="">Todas las oficinas</option>';
+
+        oficinas.forEach(oficina => {
+            const option = document.createElement('option');
+            option.value = oficina.idOficina;
+            option.textContent = oficina.nombre;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error al cargar oficinas:', error);
+    }
+}
+
+async function filtrarPersonas(pagina = 0) {
+    const token = localStorage.getItem("jwt");
+
+    if (!token) {
+        alert("Sesión expirada. Por favor inicia sesión.");
+        window.location.href = "login.html";
+        return;
+    }
+
+    const filtros = {
+        nombre: document.getElementById("filtroNombre").value.trim(),
+        email: document.getElementById("filtroEmail").value.trim(),
+        direccion: document.getElementById("filtroDireccion").value.trim(),
+        oficinaId: document.getElementById("filtroOficina").value || null,
+        fechaDesde: document.getElementById("fechaDesde").value || null,
+        fechaHasta: document.getElementById("fechaHasta").value || null,
+        page: pagina,
+        size: tamanoPagina,
+        sortBy: document.getElementById("ordenarPor").value,
+        sortDirection: document.getElementById("direccionOrden").value
+    };
+
+    try {
+        const respuesta = await fetch('http://localhost:8080/api/reportes/personas/filtrar', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(filtros)
+        });
+
+        if (!respuesta.ok) {
+            if (respuesta.status === 401 || respuesta.status === 403) {
+                alert("Sesión expirada. Por favor inicia sesión.");
+                localStorage.removeItem("jwt");
+                window.location.href = "login.html";
+                return;
+            }
+            throw new Error(`HTTP ${respuesta.status}`);
+        }
+
+        const resultado = await respuesta.json();
+        mostrarResultados(resultado);
+        paginaActual = resultado.currentPage;
+        totalPaginas = resultado.totalPages;
+        crearPaginacion();
+
+    } catch (error) {
+        console.error('Error al filtrar personas:', error);
+        alert('Error al filtrar personas. Verifique su conexión.');
+    }
+}
+
+function mostrarResultados(resultado) {
+    const tbody = document.getElementById("tablaPersonas");
+    const totalResultados = document.getElementById("totalResultados");
+
+    totalResultados.textContent = `${resultado.totalItems} resultados`;
+
+    tbody.innerHTML = "";
+
+    if (resultado.personas.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-muted">
+                    No se encontraron personas con los filtros aplicados
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    resultado.personas.forEach(persona => {
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td>${persona.idAuto}</td>
+            <td>${persona.idUsuario}</td>
+            <td>${persona.nombre}</td>
+            <td>${persona.email}</td>
+            <td>${persona.direccion}</td>
+            <td>${persona.fechaNacimiento || 'N/A'}</td>
+            <td>${persona.oficina ? persona.oficina.nombre : 'Sin oficina'}</td>
+        `;
+        tbody.appendChild(fila);
+    });
+}
+
+function crearPaginacion() {
+    const paginacion = document.getElementById("paginacion");
+    paginacion.innerHTML = "";
+
+    if (totalPaginas <= 1) return;
+
+    const anteriorLi = document.createElement('li');
+    anteriorLi.className = `page-item ${paginaActual === 0 ? 'disabled' : ''}`;
+    anteriorLi.innerHTML = `
+        <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1})">Anterior</a>
+    `;
+    paginacion.appendChild(anteriorLi);
+
+    const inicio = Math.max(0, paginaActual - 2);
+    const fin = Math.min(totalPaginas - 1, paginaActual + 2);
+
+    for (let i = inicio; i <= fin; i++) {
+        const li = document.createElement('li');
+        li.className = `page-item ${i === paginaActual ? 'active' : ''}`;
+        li.innerHTML = `
+            <a class="page-link" href="#" onclick="cambiarPagina(${i})">${i + 1}</a>
+        `;
+        paginacion.appendChild(li);
+    }
+
+    const siguienteLi = document.createElement('li');
+    siguienteLi.className = `page-item ${paginaActual === totalPaginas - 1 ? 'disabled' : ''}`;
+    siguienteLi.innerHTML = `
+        <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1})">Siguiente</a>
+    `;
+    paginacion.appendChild(siguienteLi);
+}
+
+function cambiarPagina(pagina) {
+    if (pagina >= 0 && pagina < totalPaginas) {
+        filtrarPersonas(pagina);
+    }
+}
+
+function limpiarFiltros() {
+    document.getElementById("filtroNombre").value = "";
+    document.getElementById("filtroEmail").value = "";
+    document.getElementById("filtroDireccion").value = "";
+    document.getElementById("filtroOficina").value = "";
+    document.getElementById("fechaDesde").value = "";
+    document.getElementById("fechaHasta").value = "";
+    document.getElementById("ordenarPor").value = "nombre";
+    document.getElementById("direccionOrden").value = "asc";
+
+    filtrarPersonas(0);
+}
+
+async function exportarPDF() {
+    const token = localStorage.getItem("jwt");
+
+    if (!token) {
+        alert("Sesión expirada. Por favor inicia sesión.");
+        window.location.href = "login.html";
+        return;
+    }
+
+    const filtros = {
+        nombre: document.getElementById("filtroNombre").value.trim(),
+        email: document.getElementById("filtroEmail").value.trim(),
+        direccion: document.getElementById("filtroDireccion").value.trim(),
+        oficinaId: document.getElementById("filtroOficina").value || null,
+        fechaDesde: document.getElementById("fechaDesde").value || null,
+        fechaHasta: document.getElementById("fechaHasta").value || null
+    };
+
+    try {
+        const respuesta = await fetch('http://localhost:8080/api/reportes/personas/pdf', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(filtros)
+        });
+
+        if (!respuesta.ok) {
+            throw new Error(`HTTP ${respuesta.status}`);
+        }
+
+        const blob = await respuesta.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reporte-personas-${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        alert('Reporte PDF generado exitosamente');
+
+    } catch (error) {
+        console.error('Error al exportar PDF:', error);
+        alert('Error al generar el reporte PDF');
+    }
+}
+
+async function exportarExcel() {
+    const token = localStorage.getItem("jwt");
+
+    if (!token) {
+        alert("Sesión expirada. Por favor inicia sesión.");
+        window.location.href = "login.html";
+        return;
+    }
+
+    const filtros = {
+        nombre: document.getElementById("filtroNombre").value.trim(),
+        email: document.getElementById("filtroEmail").value.trim(),
+        direccion: document.getElementById("filtroDireccion").value.trim(),
+        oficinaId: document.getElementById("filtroOficina").value || null,
+        fechaDesde: document.getElementById("fechaDesde").value || null,
+        fechaHasta: document.getElementById("fechaHasta").value || null
+    };
+
+    try {
+        const respuesta = await fetch('http://localhost:8080/api/reportes/personas/excel', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(filtros)
+        });
+
+        if (!respuesta.ok) {
+            throw new Error(`HTTP ${respuesta.status}`);
+        }
+
+        // Descargar archivo
+        const blob = await respuesta.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reporte-personas-${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        alert('Reporte Excel generado exitosamente');
+
+    } catch (error) {
+        console.error('Error al exportar Excel:', error);
+        alert('Error al generar el reporte Excel');
+    }
+}

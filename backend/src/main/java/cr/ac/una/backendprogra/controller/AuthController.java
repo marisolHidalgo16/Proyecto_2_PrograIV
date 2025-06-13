@@ -34,7 +34,7 @@ public class AuthController {
         Optional<Usuario> user = usuarioRepository.findByUsername(usuario.getUsername());
 
         if (user.isPresent() && passwordEncoder.matches(usuario.getPassword(), user.get().getPassword())) {
-            String token = jwtService.generateToken(usuario.getUsername());
+            String token = jwtService.generateToken(usuario.getUsername(), user.get().getRole());
 
             Map<String, String> response = new HashMap<>();
             response.put("token", token);

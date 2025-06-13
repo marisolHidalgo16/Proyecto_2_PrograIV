@@ -13,17 +13,17 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    // Clave secreta para firmar los tokens
     private static final String SECRET_KEY = "mySecretKeyForJwtTokenGenerationThatShouldBeAtLeast256Bits";
-    private static final long JWT_EXPIRATION = 86400000; // 24 horas en milisegundos
+    private static final long JWT_EXPIRATION = 86400000;
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String username, String role) {
         return Jwts.builder()
                 .setSubject(username)
+                .claim("role", role)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -32,6 +32,10 @@ public class JwtService {
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
     public Date extractExpiration(String token) {
