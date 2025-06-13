@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reportes de Personas</title>
+    <title>Reportes y Estadísticas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
           crossorigin="anonymous">
@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/reportes.js"></script>
     <script src="js/auth.js"></script>
     <script>verificarAutenticacion();</script>
@@ -55,7 +56,6 @@
                     </ul>
                 </li>
 
-                <!-- *** NUEVA SECCIÓN DE REGISTROS *** -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="registrosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-clock-history"></i> Registros
@@ -68,23 +68,19 @@
                             <i class="bi bi-plus-circle"></i> Nuevo Registro
                         </a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="mostrarEstadisticasRapidas()">
-                            <i class="bi bi-bar-chart"></i> Estadísticas
+                        <li><a class="dropdown-item" href="reportesIndex.html">
+                            <i class="bi bi-bar-chart"></i> Reportes y Estadísticas
                         </a></li>
                     </ul>
                 </li>
 
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bar-chart"></i> Reportes
+                        <i class="bi bi-bar-chart"></i> Reportes y Estadísticas
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
                         <li><a class="dropdown-item" href="reportesIndex.html">
-                            <i class="bi bi-file-text"></i> Reporte de Personas
-                        </a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="alert('Próximamente')">
-                            <i class="bi bi-graph-up"></i> Estadísticas
+                            <i class="bi bi-graph-up"></i> Reportes y Estadísticas
                         </a></li>
                     </ul>
                 </li>
@@ -139,143 +135,139 @@
     });
 </script>
 
-<div class="container mt-4">
-    <h1 class="text-center mb-4">
-        <i class="bi bi-bar-chart-fill"></i> Reportes y Análisis
-    </h1>
-
-    <!-- Card de Filtros -->
-    <div class="card mb-4">
-        <div class="card-header bg-warning text-dark">
-            <h5 class="mb-0"><i class="bi bi-funnel-fill"></i> Filtros para Reportes</h5>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center mb-4">
+                <i class="bi bi-graph-up-arrow text-primary"></i> Reportes y Estadísticas
+            </h1>
         </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label for="filtroNombre" class="form-label">
-                        <i class="bi bi-person"></i> Nombre
-                    </label>
-                    <input type="text" id="filtroNombre" class="form-control" placeholder="Buscar por nombre">
-                </div>
-                <div class="col-md-3">
-                    <label for="filtroEmail" class="form-label">
-                        <i class="bi bi-envelope"></i> Email
-                    </label>
-                    <input type="email" id="filtroEmail" class="form-control" placeholder="Buscar por email">
-                </div>
-                <div class="col-md-3">
-                    <label for="filtroDireccion" class="form-label">
-                        <i class="bi bi-geo-alt"></i> Dirección
-                    </label>
-                    <input type="text" id="filtroDireccion" class="form-control" placeholder="Buscar por dirección">
-                </div>
-                <div class="col-md-3">
-                    <label for="filtroOficina" class="form-label">
-                        <i class="bi bi-building"></i> Oficina
-                    </label>
-                    <select id="filtroOficina" class="form-select">
-                        <option value="">Todas las oficinas</option>
-                    </select>
+    </div>
+
+    <!-- Tarjetas de Resumen -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 id="totalPersonas">0</h4>
+                            <p class="mb-0">Total Personas</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-people fs-1"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="row g-3 mt-2">
-                <div class="col-md-3">
-                    <label for="fechaDesde" class="form-label">
-                        <i class="bi bi-calendar-date"></i> Fecha Desde
-                    </label>
-                    <input type="date" id="fechaDesde" class="form-control">
-                </div>
-                <div class="col-md-3">
-                    <label for="fechaHasta" class="form-label">
-                        <i class="bi bi-calendar-date"></i> Fecha Hasta
-                    </label>
-                    <input type="date" id="fechaHasta" class="form-control">
-                </div>
-                <div class="col-md-3">
-                    <label for="ordenarPor" class="form-label">
-                        <i class="bi bi-sort-down"></i> Ordenar por
-                    </label>
-                    <select id="ordenarPor" class="form-select">
-                        <option value="nombre">Nombre</option>
-                        <option value="idAuto">ID</option>
-                        <option value="email">Email</option>
-                        <option value="fechaNacimiento">Fecha Nacimiento</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="direccionOrden" class="form-label">
-                        <i class="bi bi-arrow-down-up"></i> Dirección
-                    </label>
-                    <select id="direccionOrden" class="form-select">
-                        <option value="asc">Ascendente</option>
-                        <option value="desc">Descendente</option>
-                    </select>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 id="totalOficinas">0</h4>
+                            <p class="mb-0">Total Oficinas</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-building fs-1"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="row mt-3">
-                <div class="col-12">
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button class="btn btn-primary" onclick="filtrarPersonas()">
-                            <i class="bi bi-search"></i> Filtrar Datos
-                        </button>
-                        <button class="btn btn-secondary" onclick="limpiarFiltros()">
-                            <i class="bi bi-x-circle"></i> Limpiar Filtros
-                        </button>
-                        <button class="btn btn-danger" onclick="exportarPDF()">
-                            <i class="bi bi-file-pdf"></i> Generar PDF
-                        </button>
-                        <button class="btn btn-success" onclick="exportarExcel()">
-                            <i class="bi bi-file-excel"></i> Generar Excel
-                        </button>
-                        <button class="btn btn-info" onclick="mostrarEstadisticas()">
-                            <i class="bi bi-pie-chart"></i> Ver Estadísticas
-                        </button>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 id="registrosHoy">0</h4>
+                            <p class="mb-0">Registros Hoy</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-clock-history fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 id="personasEnOficinas">0</h4>
+                            <p class="mb-0">Personas en Oficinas</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-geo-alt fs-1"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Card de Resultados -->
-    <div class="card">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                <i class="bi bi-table"></i> Resultados del Reporte
-            </h5>
-            <span id="totalResultados" class="badge bg-primary fs-6">0 resultados</span>
+    <!-- Botón de Actualizar -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <button class="btn btn-info btn-lg" onclick="cargarEstadisticas()">
+                <i class="bi bi-arrow-clockwise"></i> Actualizar Datos
+            </button>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover mb-0">
-                    <thead class="table-dark">
-                    <tr>
-                        <th><i class="bi bi-hash"></i> ID</th>
-                        <th><i class="bi bi-card-text"></i> ID Usuario</th>
-                        <th><i class="bi bi-person"></i> Nombre</th>
-                        <th><i class="bi bi-envelope"></i> Email</th>
-                        <th><i class="bi bi-geo-alt"></i> Dirección</th>
-                        <th><i class="bi bi-calendar-date"></i> Fecha Nacimiento</th>
-                        <th><i class="bi bi-building"></i> Oficina</th>
-                    </tr>
-                    </thead>
-                    <tbody id="tablaPersonas">
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
-                            <i class="bi bi-funnel text-muted" style="font-size: 2rem;"></i>
-                            <p class="mt-2 mb-0">Haz clic en "Filtrar Datos" para ver los resultados</p>
-                            <small class="text-muted">Configura los filtros y genera tu reporte personalizado</small>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
+    </div>
 
-            <!-- Paginación dentro de la card -->
-            <div class="d-flex justify-content-center py-3 border-top">
-                <nav aria-label="Paginación">
-                    <ul class="pagination justify-content-center" id="paginacion">
-                    </ul>
-                </nav>
+    <!-- Gráficos -->
+    <div class="row">
+        <!-- Personas con Más Ingresos -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-check"></i> Personas con Más Ingresos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartPersonasIngresos" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Oficinas con Más Ocupación -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-building-fill"></i> Oficinas con Más Ocupación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartOficinasOcupacion" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personas Actualmente en Oficinas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-geo-alt-fill"></i> Personas Actualmente en Oficinas
+                    </h5>
+                    <span id="totalPersonasEnOficinas" class="badge bg-light text-dark fs-6">0 personas</span>
+                </div>
+                <div class="card-body">
+                    <div id="personasActualesContainer">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-2 mb-0">Cargando información...</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -286,7 +278,7 @@
         <div class="row">
             <div class="col-12">
                 <p class="mb-1">
-                    <i class="bi bi-building"></i> Sistema de Gestión de Oficinas
+                    <i class="bi bi-building"></i> Sistema de Gestión de Oficinas - Reportes y Estadísticas
                 </p>
                 <small>&copy; 2025 Progra IV - Universidad Nacional de Costa Rica</small>
             </div>
@@ -294,16 +286,10 @@
     </div>
 </footer>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        cargarOficinas();
-        filtrarPersonas();
+<script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function (){
+        cargarEstadisticas();
     });
-
-    function mostrarEstadisticas() {
-        const totalResultados = document.getElementById("totalResultados").textContent;
-        alert(`📊 Estadísticas del reporte actual:\n\n${totalResultados} encontrados con los filtros aplicados\n\n¡Panel de estadísticas avanzadas próximamente!`);
-    }
 </script>
 </body>
 </html>
