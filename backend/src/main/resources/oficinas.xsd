@@ -1,0 +1,27 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://soapcrud.una.ac.cr/ws/oficina"
+           targetNamespace="http://soapcrud.una.ac.cr/ws/oficina"
+           elementFormDefault="qualified">
+
+    <xs:element name="getOficinasRequest" type="tns:GetOficinasRequest"/>
+    <xs:element name="getOficinasResponse" type="tns:GetOficinasResponse"/>
+
+    <xs:complexType name="GetOficinasRequest">
+        <xs:sequence/>
+    </xs:complexType>
+
+    <xs:complexType name="GetOficinasResponse">
+        <xs:sequence>
+            <xs:element name="oficina" type="tns:OficinaType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="OficinaType">
+        <xs:sequence>
+            <xs:element name="id" type="xs:int"/>
+            <xs:element name="nombre" type="xs:string"/>
+            <xs:element name="ubicacion" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

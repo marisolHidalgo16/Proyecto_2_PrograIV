@@ -1,0 +1,29 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://soapcrud.una.ac.cr/ws/persona"
+           targetNamespace="http://soapcrud.una.ac.cr/ws/persona"
+           elementFormDefault="qualified">
+
+    <xs:element name="getPersonasRequest" type="tns:GetPersonasRequest"/>
+    <xs:element name="getPersonasResponse" type="tns:GetPersonasResponse"/>
+
+    <xs:complexType name="GetPersonasRequest">
+        <xs:sequence/>
+    </xs:complexType>
+
+    <xs:complexType name="GetPersonasResponse">
+        <xs:sequence>
+            <xs:element name="persona" type="tns:PersonaType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="PersonaType">
+        <xs:sequence>
+            <xs:element name="id" type="xs:int"/>
+            <xs:element name="idUsuario" type="xs:string"/>
+            <xs:element name="nombre" type="xs:string"/>
+            <xs:element name="email" type="xs:string"/>
+            <xs:element name="direccion" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>
