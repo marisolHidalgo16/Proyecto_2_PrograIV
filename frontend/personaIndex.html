@@ -28,7 +28,6 @@
 
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav me-auto">
-
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="personasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-people"></i> Personas
@@ -94,7 +93,6 @@
 </nav>
 
 <script>
-
     document.addEventListener("DOMContentLoaded", function() {
         const username = localStorage.getItem("username");
         const role = localStorage.getItem("role");
@@ -124,39 +122,144 @@
 </script>
 
 <div class="container mt-4">
-    <h1 class="text-center mb-4">Lista de Personas</h1>
-    <p id="mensaje-vacio" class="text-center text-muted" style="display: none;">No hay personas registradas</p>
+    <h1 class="text-center mb-4">
+        <i class="bi bi-people-fill"></i> Gestión de Personas
+    </h1>
 
-    <a href="form.html" class="btn btn-primary mb-3">
-        <i class="bi bi-plus-circle"></i> Agregar Persona
-    </a>
+    <!-- Card de Filtros -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-funnel-fill"></i> Filtros de Búsqueda</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="filtroNombre" class="form-label">
+                        <i class="bi bi-person"></i> Nombre
+                    </label>
+                    <input type="text" id="filtroNombre" class="form-control" placeholder="Buscar por nombre">
+                </div>
+                <div class="col-md-3">
+                    <label for="filtroEmail" class="form-label">
+                        <i class="bi bi-envelope"></i> Email
+                    </label>
+                    <input type="email" id="filtroEmail" class="form-control" placeholder="Buscar por email">
+                </div>
+                <div class="col-md-3">
+                    <label for="filtroDireccion" class="form-label">
+                        <i class="bi bi-geo-alt"></i> Dirección
+                    </label>
+                    <input type="text" id="filtroDireccion" class="form-control" placeholder="Buscar por dirección">
+                </div>
+                <div class="col-md-3">
+                    <label for="filtroIdUsuario" class="form-label">
+                        <i class="bi bi-card-text"></i> ID Usuario
+                    </label>
+                    <input type="text" id="filtroIdUsuario" class="form-control" placeholder="Buscar por ID usuario">
+                </div>
+            </div>
+            <div class="row g-3 mt-2">
+                <div class="col-md-3">
+                    <label for="filtroOficina" class="form-label">
+                        <i class="bi bi-building"></i> Oficina
+                    </label>
+                    <select id="filtroOficina" class="form-select">
+                        <option value="">Todas las oficinas</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="fechaNacimiento" class="form-label">
+                        <i class="bi bi-calendar-date"></i> Fecha de Nacimiento
+                    </label>
+                    <input type="date" id="fechaNacimiento" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-primary" onclick="aplicarFiltros()">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                        <button class="btn btn-secondary" onclick="limpiarFiltros()">
+                            <i class="bi bi-x-circle"></i> Limpiar
+                        </button>
+                        <button class="btn btn-success" onclick="exportarExcel()">
+                            <i class="bi bi-file-excel"></i> Excel
+                        </button>
+                        <button class="btn btn-danger" onclick="exportarPDF()">
+                            <i class="bi bi-file-pdf"></i> PDF
+                        </button>
+                        <a href="formPersona.html" class="btn btn-info">
+                            <i class="bi bi-person-plus"></i> Agregar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>ID Usuario</th>
-                <th>Nombre</th>
-                <th>Correo</th>
-                <th>Dirección</th>
-                <th>Fecha de Nacimiento</th>
-                <th>Acciones</th>
-            </tr>
-            </thead>
-            <tbody id="personas-list">
-            </tbody>
-        </table>
-        <script type="text/javascript">
-            document.addEventListener("DOMContentLoaded", function (){
-                cargarPersonas();
-                localStorage.removeItem("editIndex");
-            });
-        </script>
+    <!-- Card de Resultados -->
+    <div class="card">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-table"></i> Lista de Personas
+            </h5>
+            <span id="total-personas" class="badge bg-primary fs-6">0 personas</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-dark">
+                    <tr>
+                        <th><i class="bi bi-hash"></i> ID</th>
+                        <th><i class="bi bi-card-text"></i> ID Usuario</th>
+                        <th><i class="bi bi-person"></i> Nombre</th>
+                        <th><i class="bi bi-envelope"></i> Correo</th>
+                        <th><i class="bi bi-geo-alt"></i> Dirección</th>
+                        <th><i class="bi bi-calendar-date"></i> Fecha Nacimiento</th>
+                        <th><i class="bi bi-building"></i> Oficina</th>
+                        <th class="text-center"><i class="bi bi-gear"></i> Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody id="personas-list">
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-2 mb-0">Cargando personas...</p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación dentro de la card -->
+            <div class="d-flex justify-content-center py-3 border-top">
+                <div id="paginacion-personas"></div>
+            </div>
+        </div>
     </div>
 </div>
+
 <footer class="bg-dark text-white-50 text-center py-3 mt-5">
-    &copy; 2025 Progra IV - Todos los derechos reservados
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <p class="mb-1">
+                    <i class="bi bi-building"></i> Sistema de Gestión de Oficinas
+                </p>
+                <small>&copy; 2025 Progra IV - Universidad Nacional de Costa Rica</small>
+            </div>
+        </div>
+    </div>
 </footer>
+
+<script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function (){
+        cargarOficinasFiltro();
+        cargarPersonas();
+        localStorage.removeItem("editIndex");
+    });
+</script>
 </body>
 </html>

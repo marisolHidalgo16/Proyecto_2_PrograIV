@@ -15,14 +15,20 @@
     <script src="js/auth.js"></script>
     <script>verificarAutenticacion();</script>
 
+    <!-- Google Maps API -->
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAyIxLJJdz1PvJmpwZCMV85VhjHLYeKoO0&libraries=places&callback=initMap">
+    </script>
+
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
+            await obtenerUbicacionActual();
 
             const id = localStorage.getItem("editIndex");
             if (id) {
                 try {
                     const token = localStorage.getItem("jwt");
-                    const respuesta = await fetch(`http://127.0.0.1:8080/api/oficinas/${id}`, {
+                    const respuesta = await fetch(`http://localhost:8080/api/oficinas/${id}`, {
                         method: 'GET',
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -35,16 +41,142 @@
                     const oficina = await respuesta.json();
                     document.getElementById("nombre").value = oficina.nombre;
                     document.getElementById("ubicacion").value = oficina.ubicacion;
+                    document.getElementById("latitud").value = oficina.latitud || '';
+                    document.getElementById("longitud").value = oficina.longitud || '';
+                    document.getElementById("capacidadMaxima").value = oficina.capacidadMaxima || '';
+
+                    if (oficina.latitud && oficina.longitud) {
+                        actualizarMapa(oficina.latitud, oficina.longitud);
+                    }
                 } catch (error) {
                     console.error('Error al cargar oficina:', error);
                     alert('No se pudo cargar la información de la oficina.');
                 }
             }
         });
+
+        async function obtenerUbicacionActual() {
+            console.log('Intentando obtener ubicación...'); // ← Debug
+
+            if (navigator.geolocation) {
+                console.log('Geolocalización disponible'); // ← Debug
+
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        console.log('¡Ubicación obtenida exitosamente!'); // ← Debug
+                        console.log('Latitud:', position.coords.latitude);
+                        console.log('Longitud:', position.coords.longitude);
+                        console.log('Precisión:', position.coords.accuracy, 'metros');
+
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+
+                        document.getElementById("latitud").value = lat.toFixed(6);
+                        document.getElementById("longitud").value = lng.toFixed(6);
+
+                        actualizarMapa(lat, lng);
+                        obtenerDireccionDesdeCoordenadas(lat, lng);
+                    },
+                    function(error) {
+                        console.error('ERROR de geolocalización:', error);
+                        console.error('Código de error:', error.code);
+                        console.error('Mensaje:', error.message);
+
+
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                alert("Permiso de ubicación denegado por el usuario.");
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                alert("Información de ubicación no disponible.");
+                                break;
+                            case error.TIMEOUT:
+                                alert("Tiempo de espera agotado para obtener ubicación.");
+                                break;
+                            default:
+                                alert("Error desconocido al obtener ubicación.");
+                                break;
+                        }
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                console.error('Geolocalización NO disponible');
+                alert('La geolocalización no es soportada por este navegador.');
+            }
+        }
+
+        let map;
+        let marker;
+
+        function initMap() {
+
+            const defaultLocation = { lat: 9.9281, lng: -84.0907 }; // San José, Costa Rica
+
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 15,
+                center: defaultLocation,
+            });
+
+            marker = new google.maps.Marker({
+                position: defaultLocation,
+                map: map,
+                draggable: true,
+                title: 'Ubicación de la oficina'
+            });
+
+            marker.addListener('dragend', function() {
+                const position = marker.getPosition();
+                document.getElementById("latitud").value = position.lat().toFixed(6);
+                document.getElementById("longitud").value = position.lng().toFixed(6);
+            });
+
+            map.addListener('click', function(event) {
+                const lat = event.latLng.lat();
+                const lng = event.latLng.lng();
+
+                marker.setPosition(event.latLng);
+                document.getElementById("latitud").value = lat.toFixed(6);
+                document.getElementById("longitud").value = lng.toFixed(6);
+            });
+        }
+
+        function actualizarMapa(lat, lng) {
+            if (map && marker) {
+                const position = { lat: parseFloat(lat), lng: parseFloat(lng) };
+                map.setCenter(position);
+                marker.setPosition(position);
+            }
+        }
+
+        function obtenerDireccionDesdeCoordenadas(lat, lng) {
+            const geocoder = new google.maps.Geocoder();
+            const latlng = { lat: parseFloat(lat), lng: parseFloat(lng) };
+
+            geocoder.geocode({ location: latlng }, (results, status) => {
+                if (status === "OK") {
+                    if (results[0]) {
+                        document.getElementById("ubicacion").value = results[0].formatted_address;
+                    }
+                }
+            });
+        }
+
+        function onCoordenadasChange() {
+            const lat = document.getElementById("latitud").value;
+            const lng = document.getElementById("longitud").value;
+
+            if (lat && lng) {
+                actualizarMapa(lat, lng);
+            }
+        }
     </script>
 </head>
 <body>
-
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="personaIndex.html">
@@ -57,7 +189,6 @@
 
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav me-auto">
-
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="personasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-people"></i> Personas
@@ -123,7 +254,6 @@
 </nav>
 
 <script>
-
     document.addEventListener("DOMContentLoaded", function() {
         const username = localStorage.getItem("username");
         const role = localStorage.getItem("role");
@@ -153,31 +283,89 @@
 </script>
 
 <div class="container mt-4">
-    <h1 class="text-center-mb-4">Agregar Oficina</h1>
-    <form class="needs-validation" novalidate onsubmit="guardarOficina(event)">
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label for="nombre">Nombre</label>
-                <input id="nombre" class="form-control" required/>
-                <div class="invalid-feedback">
-                    El campo Nombre es obligatorio.
-                </div>
-            </div>
+    <h1 class="text-center mb-4">Agregar Oficina</h1>
 
-            <div class="col-md-6">
-                <label for="ubicacion">Ubicación</label>
-                <input id="ubicacion" class="form-control" required/>
-                <div class="invalid-feedback">
-                    El campo Ubicación es obligatorio.
+    <div class="row">
+
+        <div class="col-md-6">
+            <form class="needs-validation" novalidate onsubmit="guardarOficina(event)">
+                <div class="mb-3">
+                    <label for="nombre" class="form-label">Nombre de la Oficina</label>
+                    <input id="nombre" class="form-control" required/>
+                    <div class="invalid-feedback">
+                        El campo Nombre es obligatorio.
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-12 text-center mt-4">
-                <button type="submit" class="btn btn-primary me-2"> Guardar <i class="bi bi-plus-circle"></i> </button>
-                <button type="button" class="btn btn-secondary" onclick="window.location.href='oficinaIndex.html'"> Cancelar <i class="bi bi-x-circle"></i> </button>
+
+                <div class="mb-3">
+                    <label for="ubicacion" class="form-label">Ubicación (Descripción)</label>
+                    <input id="ubicacion" class="form-control" required/>
+                    <div class="invalid-feedback">
+                        El campo Ubicación es obligatorio.
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="latitud" class="form-label">Latitud</label>
+                        <input type="number" step="any" id="latitud" class="form-control"
+                               onchange="onCoordenadasChange()" required/>
+                        <div class="invalid-feedback">
+                            La latitud es obligatoria.
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="longitud" class="form-label">Longitud</label>
+                        <input type="number" step="any" id="longitud" class="form-control"
+                               onchange="onCoordenadasChange()" required/>
+                        <div class="invalid-feedback">
+                            La longitud es obligatoria.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="capacidadMaxima" class="form-label">Capacidad Máxima de Personas</label>
+                    <input type="number" id="capacidadMaxima" class="form-control" min="1" required/>
+                    <div class="invalid-feedback">
+                        La capacidad máxima es obligatoria y debe ser mayor a 0.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <button type="button" class="btn btn-info" onclick="obtenerUbicacionActual()">
+                        <i class="bi bi-geo-alt"></i> Obtener Ubicación Actual
+                    </button>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-plus-circle"></i> Guardar
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='oficinaIndex.html'">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Mapa -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-map"></i> Ubicación en el Mapa</h5>
+                </div>
+                <div class="card-body">
+                    <div id="map" style="height: 400px; width: 100%;"></div>
+                    <small class="text-muted mt-2 d-block">
+                        Haz clic en el mapa o arrastra el marcador para cambiar la ubicación
+                    </small>
+                </div>
             </div>
         </div>
-    </form>
+    </div>
 </div>
+
 <footer class="bg-dark text-white-50 text-center py-3 mt-5">
     &copy; 2025 Progra IV - Todos los derechos reservados
 </footer>

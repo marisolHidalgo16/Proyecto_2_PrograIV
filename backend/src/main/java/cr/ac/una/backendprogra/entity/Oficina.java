@@ -12,4 +12,10 @@ public class Oficina {
 
     private String nombre;
     private String ubicacion;
+
+    private Double latitud;
+    private Double longitud;
+
+    @Column(name = "capacidad_maxima")
+    private Integer capacidadMaxima;
 }

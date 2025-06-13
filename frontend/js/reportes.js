@@ -1,6 +1,20 @@
 let paginaActual = 0;
 let totalPaginas = 0;
-const tamanoPagina = 10;
+const tamanoPagina = 5;
+
+function mostrarCargandoReportes() {
+    const tbody = document.getElementById("tablaPersonas");
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="7" class="text-center text-muted py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2 mb-0">Generando reporte...</p>
+            </td>
+        </tr>
+    `;
+}
 
 async function cargarOficinas() {
     const token = localStorage.getItem("jwt");
@@ -43,6 +57,8 @@ async function filtrarPersonas(pagina = 0) {
         return;
     }
 
+    mostrarCargandoReportes();
+
     const filtros = {
         nombre: document.getElementById("filtroNombre").value.trim(),
         email: document.getElementById("filtroEmail").value.trim(),
@@ -84,6 +100,18 @@ async function filtrarPersonas(pagina = 0) {
 
     } catch (error) {
         console.error('Error al filtrar personas:', error);
+
+        const tbody = document.getElementById("tablaPersonas");
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-danger py-4">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">Error al generar el reporte</p>
+                    <small class="text-muted">Verifique su conexión a internet</small>
+                </td>
+            </tr>
+        `;
+
         alert('Error al filtrar personas. Verifique su conexión.');
     }
 }
@@ -92,15 +120,17 @@ function mostrarResultados(resultado) {
     const tbody = document.getElementById("tablaPersonas");
     const totalResultados = document.getElementById("totalResultados");
 
-    totalResultados.textContent = `${resultado.totalItems} resultados`;
+    totalResultados.textContent = `${resultado.totalItems} resultado${resultado.totalItems !== 1 ? 's' : ''}`;
 
     tbody.innerHTML = "";
 
     if (resultado.personas.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center text-muted">
-                    No se encontraron personas con los filtros aplicados
+                <td colspan="7" class="text-center text-muted py-4">
+                    <i class="bi bi-search text-muted" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">No se encontraron personas con los filtros aplicados</p>
+                    <small class="text-muted">Intenta ajustar los criterios de búsqueda</small>
                 </td>
             </tr>
         `;
@@ -110,13 +140,34 @@ function mostrarResultados(resultado) {
     resultado.personas.forEach(persona => {
         const fila = document.createElement('tr');
         fila.innerHTML = `
-            <td>${persona.idAuto}</td>
-            <td>${persona.idUsuario}</td>
-            <td>${persona.nombre}</td>
-            <td>${persona.email}</td>
-            <td>${persona.direccion}</td>
-            <td>${persona.fechaNacimiento || 'N/A'}</td>
-            <td>${persona.oficina ? persona.oficina.nombre : 'Sin oficina'}</td>
+            <td><strong>${persona.idAuto}</strong></td>
+            <td><span class="badge bg-secondary">${persona.idUsuario}</span></td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-person-circle text-primary me-2"></i>
+                    <strong>${persona.nombre}</strong>
+                </div>
+            </td>
+            <td>
+                <a href="mailto:${persona.email}" class="text-decoration-none">
+                    <i class="bi bi-envelope me-1"></i>${persona.email}
+                </a>
+            </td>
+            <td>
+                <small class="text-muted">
+                    <i class="bi bi-geo-alt me-1"></i>${persona.direccion}
+                </small>
+            </td>
+            <td>
+                <span class="badge bg-info text-dark">
+                    <i class="bi bi-calendar-date me-1"></i>${persona.fechaNacimiento || 'N/A'}
+                </span>
+            </td>
+            <td>
+                <span class="badge bg-success">
+                    <i class="bi bi-building me-1"></i>${persona.oficina ? persona.oficina.nombre : 'Sin oficina'}
+                </span>
+            </td>
         `;
         tbody.appendChild(fila);
     });
@@ -131,7 +182,9 @@ function crearPaginacion() {
     const anteriorLi = document.createElement('li');
     anteriorLi.className = `page-item ${paginaActual === 0 ? 'disabled' : ''}`;
     anteriorLi.innerHTML = `
-        <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1})">Anterior</a>
+        <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1}); return false;">
+            <i class="bi bi-chevron-left"></i> Anterior
+        </a>
     `;
     paginacion.appendChild(anteriorLi);
 
@@ -142,7 +195,7 @@ function crearPaginacion() {
         const li = document.createElement('li');
         li.className = `page-item ${i === paginaActual ? 'active' : ''}`;
         li.innerHTML = `
-            <a class="page-link" href="#" onclick="cambiarPagina(${i})">${i + 1}</a>
+            <a class="page-link" href="#" onclick="cambiarPagina(${i}); return false;">${i + 1}</a>
         `;
         paginacion.appendChild(li);
     }
@@ -150,7 +203,9 @@ function crearPaginacion() {
     const siguienteLi = document.createElement('li');
     siguienteLi.className = `page-item ${paginaActual === totalPaginas - 1 ? 'disabled' : ''}`;
     siguienteLi.innerHTML = `
-        <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1})">Siguiente</a>
+        <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1}); return false;">
+            Siguiente <i class="bi bi-chevron-right"></i>
+        </a>
     `;
     paginacion.appendChild(siguienteLi);
 }
@@ -162,6 +217,8 @@ function cambiarPagina(pagina) {
 }
 
 function limpiarFiltros() {
+    console.log('Limpiando filtros de reportes...'); // Debug
+
     document.getElementById("filtroNombre").value = "";
     document.getElementById("filtroEmail").value = "";
     document.getElementById("filtroDireccion").value = "";
@@ -171,7 +228,21 @@ function limpiarFiltros() {
     document.getElementById("ordenarPor").value = "nombre";
     document.getElementById("direccionOrden").value = "asc";
 
-    filtrarPersonas(0);
+    const tbody = document.getElementById("tablaPersonas");
+    const totalResultados = document.getElementById("totalResultados");
+
+    totalResultados.textContent = "0 resultados";
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="7" class="text-center text-muted py-4">
+                <i class="bi bi-funnel text-muted" style="font-size: 2rem;"></i>
+                <p class="mt-2 mb-0">Filtros limpiados - Haz clic en "Filtrar Datos" para ver los resultados</p>
+                <small class="text-muted">Configura los filtros y genera tu reporte personalizado</small>
+            </td>
+        </tr>
+    `;
+
+    document.getElementById("paginacion").innerHTML = "";
 }
 
 async function exportarPDF() {
@@ -193,6 +264,11 @@ async function exportarPDF() {
     };
 
     try {
+
+        const originalText = event.target.innerHTML;
+        event.target.innerHTML = '<i class="bi bi-hourglass-split"></i> Generando PDF...';
+        event.target.disabled = true;
+
         const respuesta = await fetch('http://localhost:8080/api/reportes/personas/pdf', {
             method: 'POST',
             headers: {
@@ -216,11 +292,17 @@ async function exportarPDF() {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
 
-        alert('Reporte PDF generado exitosamente');
+        alert('📄 Reporte PDF generado exitosamente');
+
+        event.target.innerHTML = originalText;
+        event.target.disabled = false;
 
     } catch (error) {
         console.error('Error al exportar PDF:', error);
-        alert('Error al generar el reporte PDF');
+        alert('❌ Error al generar el reporte PDF');
+
+        event.target.innerHTML = '<i class="bi bi-file-pdf"></i> Generar PDF';
+        event.target.disabled = false;
     }
 }
 
@@ -243,6 +325,11 @@ async function exportarExcel() {
     };
 
     try {
+
+        const originalText = event.target.innerHTML;
+        event.target.innerHTML = '<i class="bi bi-hourglass-split"></i> Generando Excel...';
+        event.target.disabled = true;
+
         const respuesta = await fetch('http://localhost:8080/api/reportes/personas/excel', {
             method: 'POST',
             headers: {
@@ -256,7 +343,6 @@ async function exportarExcel() {
             throw new Error(`HTTP ${respuesta.status}`);
         }
 
-        // Descargar archivo
         const blob = await respuesta.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -267,10 +353,16 @@ async function exportarExcel() {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
 
-        alert('Reporte Excel generado exitosamente');
+        alert('📊 Reporte Excel generado exitosamente');
+
+        event.target.innerHTML = originalText;
+        event.target.disabled = false;
 
     } catch (error) {
         console.error('Error al exportar Excel:', error);
-        alert('Error al generar el reporte Excel');
+        alert('❌ Error al generar el reporte Excel');
+
+        event.target.innerHTML = '<i class="bi bi-file-excel"></i> Generar Excel';
+        event.target.disabled = false;
     }
 }

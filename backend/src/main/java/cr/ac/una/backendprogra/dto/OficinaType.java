@@ -10,10 +10,16 @@ import lombok.Data;
 @XmlType(name = "OficinaType", propOrder = {
         "id",
         "nombre",
-        "ubicacion"
+        "ubicacion",
+        "latitud",
+        "longitud",
+        "capacidadMaxima"
 })
 public class OficinaType {
     private Integer id;
     private String nombre;
     private String ubicacion;
+    private Double latitud;
+    private Double longitud;
+    private Integer capacidadMaxima;
 }
