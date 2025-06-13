@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Lista de Personas</title>
+    <title>Registrar Entrada/Salida</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
           crossorigin="anonymous">
@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
-    <script src="js/persona.js"></script>
+    <script src="js/registros.js"></script>
     <script src="js/auth.js"></script>
     <script>verificarAutenticacion();</script>
 </head>
@@ -142,119 +142,101 @@
 
 <div class="container mt-4">
     <h1 class="text-center mb-4">
-        <i class="bi bi-people-fill"></i> Gestión de Personas
+        <i class="bi bi-plus-circle"></i> Registrar Entrada/Salida
     </h1>
 
-    <!-- Card de Filtros -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-funnel-fill"></i> Filtros de Búsqueda</h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label for="filtroNombre" class="form-label">
-                        <i class="bi bi-person"></i> Nombre
-                    </label>
-                    <input type="text" id="filtroNombre" class="form-control" placeholder="Buscar por nombre">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Card de Registro -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Formulario de Registro</h5>
                 </div>
-                <div class="col-md-3">
-                    <label for="filtroEmail" class="form-label">
-                        <i class="bi bi-envelope"></i> Email
-                    </label>
-                    <input type="email" id="filtroEmail" class="form-control" placeholder="Buscar por email">
-                </div>
-                <div class="col-md-3">
-                    <label for="filtroDireccion" class="form-label">
-                        <i class="bi bi-geo-alt"></i> Dirección
-                    </label>
-                    <input type="text" id="filtroDireccion" class="form-control" placeholder="Buscar por dirección">
-                </div>
-                <div class="col-md-3">
-                    <label for="filtroIdUsuario" class="form-label">
-                        <i class="bi bi-card-text"></i> ID Usuario
-                    </label>
-                    <input type="text" id="filtroIdUsuario" class="form-control" placeholder="Buscar por ID usuario">
-                </div>
-            </div>
-            <div class="row g-3 mt-2">
-                <div class="col-md-3">
-                    <label for="filtroOficina" class="form-label">
-                        <i class="bi bi-building"></i> Oficina
-                    </label>
-                    <select id="filtroOficina" class="form-select">
-                        <option value="">Todas las oficinas</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="fechaNacimiento" class="form-label">
-                        <i class="bi bi-calendar-date"></i> Fecha de Nacimiento
-                    </label>
-                    <input type="date" id="fechaNacimiento" class="form-control">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">&nbsp;</label>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button class="btn btn-primary" onclick="aplicarFiltros()">
-                            <i class="bi bi-search"></i> Buscar
-                        </button>
-                        <button class="btn btn-secondary" onclick="limpiarFiltros()">
-                            <i class="bi bi-x-circle"></i> Limpiar
-                        </button>
-                        <button class="btn btn-success" onclick="exportarExcel()">
-                            <i class="bi bi-file-excel"></i> Excel
-                        </button>
-                        <button class="btn btn-danger" onclick="exportarPDF()">
-                            <i class="bi bi-file-pdf"></i> PDF
-                        </button>
-                        <a href="formPersona.html" class="btn btn-info">
-                            <i class="bi bi-person-plus"></i> Agregar
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Card de Resultados -->
-    <div class="card">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                <i class="bi bi-table"></i> Lista de Personas
-            </h5>
-            <span id="total-personas" class="badge bg-primary fs-6">0 personas</span>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover mb-0">
-                    <thead class="table-dark">
-                    <tr>
-                        <th><i class="bi bi-hash"></i> ID</th>
-                        <th><i class="bi bi-card-text"></i> ID Usuario</th>
-                        <th><i class="bi bi-person"></i> Nombre</th>
-                        <th><i class="bi bi-envelope"></i> Correo</th>
-                        <th><i class="bi bi-geo-alt"></i> Dirección</th>
-                        <th><i class="bi bi-calendar-date"></i> Fecha Nacimiento</th>
-                        <th><i class="bi bi-building"></i> Oficina</th>
-                        <th class="text-center"><i class="bi bi-gear"></i> Acciones</th>
-                    </tr>
-                    </thead>
-                    <tbody id="personas-list">
-                    <tr>
-                        <td colspan="8" class="text-center text-muted py-4">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Cargando...</span>
+                <div class="card-body">
+                    <form class="needs-validation" novalidate onsubmit="procesarRegistro(event)">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="persona" class="form-label">
+                                    <i class="bi bi-person"></i> Persona <span class="text-danger">*</span>
+                                </label>
+                                <select id="persona" class="form-select" required onchange="verificarEstadoPersona()">
+                                    <option value="">Seleccionar persona...</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Por favor selecciona una persona.
+                                </div>
                             </div>
-                            <p class="mt-2 mb-0">Cargando personas...</p>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
 
-            <!-- Paginación dentro de la card -->
-            <div class="d-flex justify-content-center py-3 border-top">
-                <div id="paginacion-personas"></div>
+                            <div class="col-md-6">
+                                <label for="oficina" class="form-label">
+                                    <i class="bi bi-building"></i> Oficina <span class="text-danger">*</span>
+                                </label>
+                                <select id="oficina" class="form-select" required onchange="verificarCapacidadOficina()">
+                                    <option value="">Seleccionar oficina...</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Por favor selecciona una oficina.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información del estado actual -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div id="info-estado" class="alert alert-info" style="display: none;">
+                                    <i class="bi bi-info-circle"></i> <span id="estado-texto"></span>
+                                </div>
+                                <div id="info-capacidad" class="alert alert-warning" style="display: none;">
+                                    <i class="bi bi-exclamation-triangle"></i> <span id="capacidad-texto"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <label for="tipoMovimiento" class="form-label">
+                                    <i class="bi bi-arrow-left-right"></i> Tipo de Movimiento <span class="text-danger">*</span>
+                                </label>
+                                <select id="tipoMovimiento" class="form-select" required>
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="ENTRADA">
+                                        <i class="bi bi-box-arrow-in-right"></i> Entrada
+                                    </option>
+                                    <option value="SALIDA">
+                                        <i class="bi bi-box-arrow-right"></i> Salida
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Por favor selecciona el tipo de movimiento.
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="fechaHora" class="form-label">
+                                    <i class="bi bi-clock"></i> Fecha y Hora <span class="text-danger">*</span>
+                                </label>
+                                <input type="datetime-local" id="fechaHora" class="form-control" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingresa la fecha y hora.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-success btn-lg me-3">
+                                    <i class="bi bi-check-circle"></i> Registrar
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-lg" onclick="limpiarFormulario()">
+                                    <i class="bi bi-x-circle"></i> Limpiar
+                                </button>
+                                <a href="registrosIndex.html" class="btn btn-outline-primary btn-lg ms-3">
+                                    <i class="bi bi-arrow-left"></i> Volver a Lista
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -275,10 +257,20 @@
 
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function (){
-        cargarOficinasFiltro();
-        cargarPersonas();
-        localStorage.removeItem("editIndex");
+        cargarPersonasCombo();
+        cargarOficinasCombo();
+        actualizarFechaHora();
     });
+
+    function actualizarFechaHora() {
+        const ahora = new Date();
+        const fechaHoraString = ahora.toISOString().slice(0, 16);
+        document.getElementById('fechaHora').value = fechaHoraString;
+    }
+
+    function mostrarEstadisticasRapidas() {
+        alert('📊 Estadísticas disponibles desde la lista de registros');
+    }
 </script>
 </body>
 </html>

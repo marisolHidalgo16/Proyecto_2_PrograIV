@@ -3,8 +3,10 @@ package cr.ac.una.backendprogra.controller;
 import com.itextpdf.text.DocumentException;
 import cr.ac.una.backendprogra.dto.PersonaFilterDTO;
 import cr.ac.una.backendprogra.entity.Persona;
+import cr.ac.una.backendprogra.entity.RegistroEntradaSalida;
 import cr.ac.una.backendprogra.repository.PersonaRepository;
 import cr.ac.una.backendprogra.service.ReporteService;
+import cr.ac.una.backendprogra.service.RegistroEntradaSalidaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -35,11 +38,13 @@ public class ReporteController {
     @Autowired
     private ReporteService reporteService;
 
+    @Autowired
+    private RegistroEntradaSalidaService registroService;
+
     @PostMapping("/personas/filtrar")
     @PreAuthorize("hasRole('ADMINISTRADOR') or hasRole('VISOR')")
     public ResponseEntity<Map<String, Object>> filtrarPersonas(@RequestBody PersonaFilterDTO filtros) {
         try {
-
             Sort sort = Sort.by(filtros.getSortDirection().equals("desc") ?
                     Sort.Direction.DESC : Sort.Direction.ASC, filtros.getSortBy());
             Pageable pageable = PageRequest.of(filtros.getPage(), filtros.getSize(), sort);
@@ -83,7 +88,6 @@ public class ReporteController {
     @PreAuthorize("hasRole('ADMINISTRADOR') or hasRole('VISOR')")
     public ResponseEntity<byte[]> exportarPersonasPDF(@RequestBody PersonaFilterDTO filtros) {
         try {
-
             LocalDate fechaDesde = null;
             LocalDate fechaHasta = null;
             if (filtros.getFechaDesde() != null && !filtros.getFechaDesde().isEmpty()) {
@@ -119,7 +123,6 @@ public class ReporteController {
     @PreAuthorize("hasRole('ADMINISTRADOR') or hasRole('VISOR')")
     public ResponseEntity<byte[]> exportarPersonasExcel(@RequestBody PersonaFilterDTO filtros) {
         try {
-            // Parsear fechas si existen
             LocalDate fechaDesde = null;
             LocalDate fechaHasta = null;
             if (filtros.getFechaDesde() != null && !filtros.getFechaDesde().isEmpty()) {
@@ -149,5 +152,112 @@ public class ReporteController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @PostMapping("/registros/pdf")
+    @PreAuthorize("hasRole('ADMINISTRADOR') or hasRole('VISOR')")
+    public ResponseEntity<byte[]> exportarRegistrosPDF(@RequestBody RegistroFilterDTO filtros) {
+        try {
+
+            LocalDateTime fechaDesde = null;
+            LocalDateTime fechaHasta = null;
+
+            if (filtros.getFechaDesde() != null && !filtros.getFechaDesde().isEmpty()) {
+                fechaDesde = LocalDateTime.parse(filtros.getFechaDesde() + "T00:00:00");
+            }
+            if (filtros.getFechaHasta() != null && !filtros.getFechaHasta().isEmpty()) {
+                fechaHasta = LocalDateTime.parse(filtros.getFechaHasta() + "T23:59:59");
+            }
+
+            RegistroEntradaSalida.TipoMovimiento tipoEnum = null;
+            if (filtros.getTipoMovimiento() != null && !filtros.getTipoMovimiento().isEmpty()) {
+                try {
+                    tipoEnum = RegistroEntradaSalida.TipoMovimiento.valueOf(filtros.getTipoMovimiento().toUpperCase());
+                } catch (IllegalArgumentException e) {
+
+                }
+            }
+
+            List<RegistroEntradaSalida> registros = registroService.obtenerTodosLosRegistrosConFiltros(
+                    filtros.getPersonaId(),
+                    filtros.getOficinaId(),
+                    tipoEnum,
+                    fechaDesde,
+                    fechaHasta
+            );
+
+            byte[] pdfBytes = reporteService.generarPDFRegistros(registros);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "reporte-registros.pdf");
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+        } catch (DocumentException | IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/registros/excel")
+    @PreAuthorize("hasRole('ADMINISTRADOR') or hasRole('VISOR')")
+    public ResponseEntity<byte[]> exportarRegistrosExcel(@RequestBody RegistroFilterDTO filtros) {
+        try {
+
+            LocalDateTime fechaDesde = null;
+            LocalDateTime fechaHasta = null;
+
+            if (filtros.getFechaDesde() != null && !filtros.getFechaDesde().isEmpty()) {
+                fechaDesde = LocalDateTime.parse(filtros.getFechaDesde() + "T00:00:00");
+            }
+            if (filtros.getFechaHasta() != null && !filtros.getFechaHasta().isEmpty()) {
+                fechaHasta = LocalDateTime.parse(filtros.getFechaHasta() + "T23:59:59");
+            }
+
+            RegistroEntradaSalida.TipoMovimiento tipoEnum = null;
+            if (filtros.getTipoMovimiento() != null && !filtros.getTipoMovimiento().isEmpty()) {
+                try {
+                    tipoEnum = RegistroEntradaSalida.TipoMovimiento.valueOf(filtros.getTipoMovimiento().toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    // Ignorar si no es válido
+                }
+            }
+
+            List<RegistroEntradaSalida> registros = registroService.obtenerTodosLosRegistrosConFiltros(
+                    filtros.getPersonaId(),
+                    filtros.getOficinaId(),
+                    tipoEnum,
+                    fechaDesde,
+                    fechaHasta
+            );
+
+            byte[] excelBytes = reporteService.generarExcelRegistros(registros);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "reporte-registros.xlsx");
+
+            return new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    public static class RegistroFilterDTO {
+        private Integer personaId;
+        private Integer oficinaId;
+        private String tipoMovimiento;
+        private String fechaDesde;
+        private String fechaHasta;
+
+        public Integer getPersonaId() { return personaId; }
+        public void setPersonaId(Integer personaId) { this.personaId = personaId; }
+        public Integer getOficinaId() { return oficinaId; }
+        public void setOficinaId(Integer oficinaId) { this.oficinaId = oficinaId; }
+        public String getTipoMovimiento() { return tipoMovimiento; }
+        public void setTipoMovimiento(String tipoMovimiento) { this.tipoMovimiento = tipoMovimiento; }
+        public String getFechaDesde() { return fechaDesde; }
+        public void setFechaDesde(String fechaDesde) { this.fechaDesde = fechaDesde; }
+        public String getFechaHasta() { return fechaHasta; }
+        public void setFechaHasta(String fechaHasta) { this.fechaHasta = fechaHasta; }
     }
 }
