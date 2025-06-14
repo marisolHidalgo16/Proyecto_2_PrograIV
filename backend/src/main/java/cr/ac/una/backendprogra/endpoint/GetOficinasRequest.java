@@ -8,5 +8,4 @@ import jakarta.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "GetOficinasRequest")
 public class GetOficinasRequest {
-    // No contiene propiedades, ya que solo sirve para la solicitud
 }

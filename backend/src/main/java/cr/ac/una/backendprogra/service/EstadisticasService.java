@@ -26,9 +26,6 @@ public class EstadisticasService {
     @Autowired
     private OficinaRepository oficinaRepository;
 
-    /**
-     * Obtiene las personas con más ingresos (registros de ENTRADA)
-     */
     public List<PersonaIngresosDTO> obtenerPersonasConMasIngresos(LocalDate fechaDesde, LocalDate fechaHasta) {
         return obtenerPersonasConMasIngresos(fechaDesde, fechaHasta, 10);
     }
@@ -37,19 +34,16 @@ public class EstadisticasService {
         LocalDateTime fechaDesdeDateTime = fechaDesde != null ? fechaDesde.atStartOfDay() : null;
         LocalDateTime fechaHastaDateTime = fechaHasta != null ? fechaHasta.atTime(23, 59, 59) : null;
 
-        // Obtener todos los registros de ENTRADA en el rango de fechas
         List<RegistroEntradaSalida> registros = registroRepository.findAllWithFilters(
                 null, null, RegistroEntradaSalida.TipoMovimiento.ENTRADA,
                 fechaDesdeDateTime, fechaHastaDateTime);
 
-        // Agrupar por persona y contar
         Map<Persona, Long> conteoPorPersona = registros.stream()
                 .collect(Collectors.groupingBy(
                         RegistroEntradaSalida::getPersona,
                         Collectors.counting()
                 ));
 
-        // Convertir a DTO y ordenar por cantidad de ingresos (descendente)
         return conteoPorPersona.entrySet().stream()
                 .map(entry -> new PersonaIngresosDTO(
                         entry.getKey().getIdAuto(),
@@ -62,26 +56,20 @@ public class EstadisticasService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Obtiene las oficinas con más ocupación (más registros de ENTRADA)
-     */
     public List<OficinaOcupacionDTO> obtenerOficinasConMasOcupacion(LocalDate fechaDesde, LocalDate fechaHasta) {
         LocalDateTime fechaDesdeDateTime = fechaDesde != null ? fechaDesde.atStartOfDay() : null;
         LocalDateTime fechaHastaDateTime = fechaHasta != null ? fechaHasta.atTime(23, 59, 59) : null;
 
-        // Obtener todos los registros de ENTRADA en el rango de fechas
         List<RegistroEntradaSalida> registros = registroRepository.findAllWithFilters(
                 null, null, RegistroEntradaSalida.TipoMovimiento.ENTRADA,
                 fechaDesdeDateTime, fechaHastaDateTime);
 
-        // Agrupar por oficina y contar
         Map<Oficina, Long> conteoPorOficina = registros.stream()
                 .collect(Collectors.groupingBy(
                         RegistroEntradaSalida::getOficina,
                         Collectors.counting()
                 ));
 
-        // Convertir a DTO y ordenar por cantidad de ingresos (descendente)
         return conteoPorOficina.entrySet().stream()
                 .map(entry -> new OficinaOcupacionDTO(
                         entry.getKey().getIdOficina(),
@@ -94,9 +82,6 @@ public class EstadisticasService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Obtiene las personas que actualmente se encuentran en oficinas
-     */
     public List<PersonaEnOficinaDTO> obtenerPersonasActualmenteEnOficinas() {
         List<Oficina> todasLasOficinas = oficinaRepository.findAll();
         List<PersonaEnOficinaDTO> resultado = new ArrayList<>();
@@ -131,9 +116,6 @@ public class EstadisticasService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Obtiene un resumen general de estadísticas
-     */
     public ResumenGeneralDTO obtenerResumenGeneral() {
         long totalPersonas = personaRepository.count();
         long totalOficinas = oficinaRepository.count();
@@ -147,8 +129,6 @@ public class EstadisticasService {
                 (int) personasActualmenteEnOficinas
         );
     }
-
-    // ===== MÉTODOS AUXILIARES =====
 
     private LocalDateTime obtenerUltimaHoraEntrada(Integer personaId, Integer oficinaId) {
         List<RegistroEntradaSalida> registros = registroRepository.findAllWithFilters(
@@ -173,8 +153,6 @@ public class EstadisticasService {
                 .sum();
     }
 
-    // ===== DTOs =====
-
     public static class PersonaIngresosDTO {
         private Integer personaId;
         private String nombre;
@@ -188,7 +166,6 @@ public class EstadisticasService {
             this.cantidadIngresos = cantidadIngresos;
         }
 
-        // Getters
         public Integer getPersonaId() { return personaId; }
         public String getNombre() { return nombre; }
         public String getIdUsuario() { return idUsuario; }
@@ -210,7 +187,6 @@ public class EstadisticasService {
             this.capacidadMaxima = capacidadMaxima;
         }
 
-        // Getters
         public Integer getOficinaId() { return oficinaId; }
         public String getNombre() { return nombre; }
         public String getUbicacion() { return ubicacion; }
@@ -236,7 +212,6 @@ public class EstadisticasService {
             this.personas = personas;
         }
 
-        // Getters
         public Integer getOficinaId() { return oficinaId; }
         public String getNombreOficina() { return nombreOficina; }
         public String getUbicacion() { return ubicacion; }
@@ -258,7 +233,6 @@ public class EstadisticasService {
             this.horaEntrada = horaEntrada;
         }
 
-        // Getters
         public Integer getPersonaId() { return personaId; }
         public String getNombre() { return nombre; }
         public String getIdUsuario() { return idUsuario; }
@@ -278,7 +252,6 @@ public class EstadisticasService {
             this.personasEnOficinas = personasEnOficinas;
         }
 
-        // Getters
         public Integer getTotalPersonas() { return totalPersonas; }
         public Integer getTotalOficinas() { return totalOficinas; }
         public Integer getRegistrosHoy() { return registrosHoy; }

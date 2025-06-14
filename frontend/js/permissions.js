@@ -89,7 +89,7 @@ class PermissionManager {
     }
 
     hideElementsBasedOnPermissions() {
-        // PERSONAS - Botones de escritura
+
         if (!this.canWritePersonas()) {
             this.hideElements([
                 'a[href="formPersona.html"]',

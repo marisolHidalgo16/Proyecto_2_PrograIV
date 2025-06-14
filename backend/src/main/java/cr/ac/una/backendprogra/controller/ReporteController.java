@@ -218,7 +218,6 @@ public class ReporteController {
                 try {
                     tipoEnum = RegistroEntradaSalida.TipoMovimiento.valueOf(filtros.getTipoMovimiento().toUpperCase());
                 } catch (IllegalArgumentException e) {
-                    // Ignorar si no es válido
                 }
             }
 

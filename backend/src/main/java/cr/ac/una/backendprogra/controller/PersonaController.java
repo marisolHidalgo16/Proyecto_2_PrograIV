@@ -42,7 +42,7 @@ public class PersonaController {
             @RequestParam(required = false) String fechaNacimiento) {
 
         try {
-            // DEBUGGING - Imprimir todos los parámetros recibidos
+
             System.out.println("=== PARÁMETROS RECIBIDOS ===");
             System.out.println("nombre: '" + nombre + "'");
             System.out.println("email: '" + email + "'");
@@ -60,19 +60,16 @@ public class PersonaController {
                     Sort.Direction.DESC : Sort.Direction.ASC, sortBy);
             Pageable pageable = PageRequest.of(page, size, sort);
 
-            // CORRECCIÓN: Convertir strings vacíos a null para que funcione la query
             nombre = (nombre != null && nombre.trim().isEmpty()) ? null : nombre;
             email = (email != null && email.trim().isEmpty()) ? null : email;
             direccion = (direccion != null && direccion.trim().isEmpty()) ? null : direccion;
             idUsuario = (idUsuario != null && idUsuario.trim().isEmpty()) ? null : idUsuario;
 
-            // Parsear fecha de nacimiento si existe
             LocalDate fechaNacimientoDate = null;
             if (fechaNacimiento != null && !fechaNacimiento.trim().isEmpty()) {
                 fechaNacimientoDate = LocalDate.parse(fechaNacimiento, DateTimeFormatter.ISO_LOCAL_DATE);
             }
 
-            // DEBUGGING - Verificar parámetros después de limpieza
             System.out.println("=== DESPUÉS DE LIMPIEZA ===");
             System.out.println("nombre: " + nombre);
             System.out.println("email: " + email);
@@ -81,12 +78,10 @@ public class PersonaController {
             System.out.println("fechaNacimientoDate: " + fechaNacimientoDate);
             System.out.println("============================");
 
-            // Llamar al repository con fecha de nacimiento específica
             Page<Persona> pagePersonas = personaRepository.findWithFilters(
                     nombre, email, direccion, idUsuario, oficinaId,
-                    fechaNacimientoDate, fechaNacimientoDate, pageable); // Usar la misma fecha para desde y hasta
+                    fechaNacimientoDate, fechaNacimientoDate, pageable);
 
-            // DEBUGGING - Verificar resultados
             System.out.println("Total encontrado: " + pagePersonas.getTotalElements());
             System.out.println("Contenido página: " + pagePersonas.getContent().size());
 

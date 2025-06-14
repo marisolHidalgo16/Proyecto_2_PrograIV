@@ -14,12 +14,10 @@
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
 
-    <!-- Google Maps API -->
     <script async defer
             src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAyIxLJJdz1PvJmpwZCMV85VhjHLYeKoO0&libraries=places&callback=initMap">
     </script>
 
-    <!-- Scripts de autenticación y funcionalidad -->
     <script src="js/authGuard.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/oficina.js"></script>
@@ -192,7 +190,6 @@
             }
         }
 
-        /* Animaciones */
         .pulse {
             animation: pulse 2s infinite;
         }
@@ -214,7 +211,7 @@
     </style>
 </head>
 <body>
-<!-- Navegación -->
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container-fluid">
         <a class="navbar-brand" href="personaIndex.html">
@@ -228,7 +225,7 @@
 
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav me-auto">
-                <!-- Personas -->
+
                 <li class="nav-item dropdown" id="personasDropdownContainer">
                     <a class="nav-link dropdown-toggle" href="#" id="personasDropdown" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">
@@ -244,7 +241,6 @@
                     </ul>
                 </li>
 
-                <!-- Oficinas -->
                 <li class="nav-item dropdown" id="oficinasDropdownContainer">
                     <a class="nav-link dropdown-toggle active" href="#" id="oficinasDropdown" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">
@@ -260,7 +256,6 @@
                     </ul>
                 </li>
 
-                <!-- Registros -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="registrosDropdown" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">
@@ -276,7 +271,6 @@
                     </ul>
                 </li>
 
-                <!-- Reportes -->
                 <li class="nav-item dropdown" id="reportesDropdownContainer">
                     <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">
@@ -290,7 +284,6 @@
                 </li>
             </ul>
 
-            <!-- Usuario -->
             <ul class="navbar-nav">
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle user-info" href="#" id="usuarioDropdown" role="button"
@@ -314,9 +307,8 @@
     </div>
 </nav>
 
-<!-- Contenido Principal -->
 <div class="container mt-4 fade-in">
-    <!-- Encabezado -->
+
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
@@ -336,7 +328,6 @@
         </div>
     </div>
 
-    <!-- Estado de ubicación -->
     <div id="locationStatus" class="location-status status-warning" style="display: none;">
         <div class="d-flex align-items-center">
             <i class="bi bi-info-circle me-2"></i>
@@ -344,9 +335,8 @@
         </div>
     </div>
 
-    <!-- Formulario -->
     <div class="row">
-        <!-- Formulario de datos -->
+
         <div class="col-lg-6">
             <div class="card">
                 <div class="card-header">
@@ -426,7 +416,6 @@
                             </div>
                         </div>
 
-                        <!-- Botón para obtener ubicación -->
                         <div class="mb-4">
                             <button type="button" class="btn btn-info w-100" onclick="obtenerUbicacionActual()" id="btnUbicacion">
                                 <span class="loading-spinner spinner-border spinner-border-sm me-2" role="status"></span>
@@ -440,7 +429,6 @@
                             </div>
                         </div>
 
-                        <!-- Información de capacidad -->
                         <div class="capacity-info">
                             <h6 class="mb-2">
                                 <i class="bi bi-info-circle me-2"></i>Información de Capacidad
@@ -451,7 +439,6 @@
                             </p>
                         </div>
 
-                        <!-- Botones de acción -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-primary flex-fill" id="btnGuardar">
                                 <span class="loading-spinner spinner-border spinner-border-sm me-2" role="status"></span>
@@ -468,7 +455,6 @@
             </div>
         </div>
 
-        <!-- Mapa y coordenadas -->
         <div class="col-lg-6">
             <div class="card">
                 <div class="card-header">
@@ -512,7 +498,6 @@
     </div>
 </div>
 
-<!-- Ayuda flotante -->
 <div class="floating-help">
     <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="left"
             title="¿Necesitas ayuda? Haz clic aquí" onclick="mostrarAyuda()">
@@ -520,7 +505,6 @@
     </button>
 </div>
 
-<!-- Footer -->
 <footer class="bg-dark text-white-50 text-center py-4 mt-5">
     <div class="container">
         <div class="row">
@@ -543,36 +527,30 @@
 </footer>
 
 <script>
-    // Variables globales específicas del formulario
+
     let isEditMode = false;
     let oficinaCargada = null;
 
-    // Inicialización de la página
     document.addEventListener("DOMContentLoaded", function() {
-        // Verificar autenticación
+
         verificarAutenticacion().then(isAuth => {
             if (!isAuth) return;
 
-            // Verificar permisos
             verificarPermisos();
 
-            // Mostrar información del usuario
             mostrarInfoUsuario();
 
-            // Inicializar tooltips
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
 
-            // Detectar modo de edición
             detectarModoEdicion();
 
             console.log('✅ Formulario de oficina inicializado correctamente');
         });
     });
 
-    // Función para verificar permisos
     function verificarPermisos() {
         const role = localStorage.getItem("role");
 
@@ -587,7 +565,6 @@
         return true;
     }
 
-    // Función para mostrar información del usuario
     function mostrarInfoUsuario() {
         const username = localStorage.getItem("username");
         const role = localStorage.getItem("role");
@@ -603,7 +580,6 @@
         }
     }
 
-    // Función para detectar modo de edición
     function detectarModoEdicion() {
         const editIndex = localStorage.getItem("editIndex");
 
@@ -618,12 +594,10 @@
                     </span>
                 `;
 
-            // Cargar datos de la oficina
             cargarDatosOficina(editIndex);
         }
     }
 
-    // Función para cargar datos de la oficina (modo edición)
     async function cargarDatosOficina(id) {
         try {
             mostrarEstadoUbicacion("Cargando datos de la oficina...", "warning");
@@ -637,17 +611,14 @@
             const oficina = await response.json();
             oficinaCargada = oficina;
 
-            // Llenar formulario
             document.getElementById("nombre").value = oficina.nombre || '';
             document.getElementById("ubicacion").value = oficina.ubicacion || '';
             document.getElementById("latitud").value = oficina.latitud || '';
             document.getElementById("longitud").value = oficina.longitud || '';
             document.getElementById("capacidadMaxima").value = oficina.capacidadMaxima || '';
 
-            // Actualizar display de coordenadas
             actualizarDisplayCoordenadas(oficina.latitud, oficina.longitud);
 
-            // Actualizar mapa si hay coordenadas
             if (oficina.latitud && oficina.longitud) {
                 actualizarMapa(oficina.latitud, oficina.longitud);
             }
@@ -660,7 +631,6 @@
         }
     }
 
-    // Función para mostrar estado de ubicación
     function mostrarEstadoUbicacion(mensaje, tipo) {
         const statusDiv = document.getElementById('locationStatus');
         const statusText = document.getElementById('locationStatusText');
@@ -669,7 +639,6 @@
         statusText.textContent = mensaje;
         statusDiv.style.display = 'block';
 
-        // Auto-ocultar después de 5 segundos para mensajes de éxito
         if (tipo === 'success' || tipo === 'error') {
             setTimeout(() => {
                 statusDiv.style.display = 'none';
@@ -677,7 +646,6 @@
         }
     }
 
-    // Función para actualizar display de coordenadas
     function actualizarDisplayCoordenadas(lat, lng) {
         const displayLat = document.getElementById('displayLatitud');
         const displayLng = document.getElementById('displayLongitud');
@@ -691,7 +659,6 @@
         }
     }
 
-    // Sobrescribir la función onCoordenadasChange para actualizar el display
     function onCoordenadasChange() {
         const lat = document.getElementById("latitud").value;
         const lng = document.getElementById("longitud").value;
@@ -764,7 +731,6 @@
 
                 mostrarEstadoUbicacion(mensaje, "error");
 
-                // Restaurar botón
                 btn.classList.remove('loading');
                 btn.disabled = false;
             },

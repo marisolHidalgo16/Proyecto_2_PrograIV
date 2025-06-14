@@ -457,7 +457,6 @@ function limpiarFormulario() {
     if (infoEstado) infoEstado.style.display = "none";
     if (infoCapacidad) infoCapacidad.style.display = "none";
 
-    // Remover validación
     document.querySelectorAll('.was-validated').forEach(el => {
         el.classList.remove('was-validated');
     });

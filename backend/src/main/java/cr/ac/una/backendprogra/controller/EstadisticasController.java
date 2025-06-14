@@ -18,8 +18,6 @@ public class EstadisticasController {
     @Autowired
     private EstadisticasService estadisticasService;
 
-    // Solo necesitas ajustar este método en EstadisticasController.java:
-
     @GetMapping("/dashboard")
     @PreAuthorize("hasRole('ADMINISTRADOR') or hasRole('VISOR')")
     public ResponseEntity<?> obtenerDashboard(
@@ -27,7 +25,7 @@ public class EstadisticasController {
             @RequestParam(required = false) String fechaHasta) {
 
         try {
-            // Si no se proporcionan fechas, usar null (sin filtros)
+
             LocalDate fechaDesdeDate = null;
             LocalDate fechaHastaDate = null;
 
@@ -38,7 +36,6 @@ public class EstadisticasController {
                 fechaHastaDate = LocalDate.parse(fechaHasta);
             }
 
-            // Obtener todas las estadísticas (sin filtros si fechas son null)
             var personasConMasIngresos = estadisticasService.obtenerPersonasConMasIngresos(fechaDesdeDate, fechaHastaDate);
             var oficinasConMasOcupacion = estadisticasService.obtenerOficinasConMasOcupacion(fechaDesdeDate, fechaHastaDate);
             var personasActualmenteEnOficinas = estadisticasService.obtenerPersonasActualmenteEnOficinas();

@@ -212,7 +212,6 @@ function mostrarPersonas(resultado) {
     resultado.personas.forEach((persona) => {
         let oficinaNombre = persona.oficina ? persona.oficina.nombre : 'Sin oficina';
 
-        // Construir botones de acción según permisos
         let botonesAccion = '';
         if (role === "ROLE_ADMINISTRADOR") {
             botonesAccion = `

@@ -37,7 +37,7 @@ public class RegistroEntradaSalidaController {
             RegistroEntradaSalida registro = registroService.registrarEntrada(
                     dto.getPersonaId(),
                     dto.getOficinaId(),
-                    dto.getFechaHora(), // ← AGREGADO: usar fecha/hora personalizada
+                    dto.getFechaHora(),
                     dto.getObservaciones(),
                     usuarioRegistro
             );
@@ -66,7 +66,7 @@ public class RegistroEntradaSalidaController {
             RegistroEntradaSalida registro = registroService.registrarSalida(
                     dto.getPersonaId(),
                     dto.getOficinaId(),
-                    dto.getFechaHora(), // ← AGREGADO: usar fecha/hora personalizada
+                    dto.getFechaHora(),
                     dto.getObservaciones(),
                     usuarioRegistro
             );
@@ -128,7 +128,6 @@ public class RegistroEntradaSalidaController {
                 try {
                     tipoEnum = RegistroEntradaSalida.TipoMovimiento.valueOf(tipoMovimiento.toUpperCase());
                 } catch (IllegalArgumentException e) {
-                    // Ignorar si no es válido
                 }
             }
 
@@ -232,7 +231,7 @@ public class RegistroEntradaSalidaController {
     public static class RegistroEntradaDTO {
         private Integer personaId;
         private Integer oficinaId;
-        private LocalDateTime fechaHora; // ← AGREGADO
+        private LocalDateTime fechaHora;
         private String observaciones;
 
         public Integer getPersonaId() { return personaId; }
@@ -241,8 +240,8 @@ public class RegistroEntradaSalidaController {
         public Integer getOficinaId() { return oficinaId; }
         public void setOficinaId(Integer oficinaId) { this.oficinaId = oficinaId; }
 
-        public LocalDateTime getFechaHora() { return fechaHora; } // ← AGREGADO
-        public void setFechaHora(LocalDateTime fechaHora) { this.fechaHora = fechaHora; } // ← AGREGADO
+        public LocalDateTime getFechaHora() { return fechaHora; }
+        public void setFechaHora(LocalDateTime fechaHora) { this.fechaHora = fechaHora; }
 
         public String getObservaciones() { return observaciones; }
         public void setObservaciones(String observaciones) { this.observaciones = observaciones; }

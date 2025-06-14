@@ -8,5 +8,4 @@ import jakarta.xml.bind.annotation.XmlType;
 @XmlType(name = "GetPersonasRequest")
 
 public class GetPersonasRequest {
-    // No contiene propiedades, ya que solo sirve para la solicitud
 }

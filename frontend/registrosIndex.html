@@ -516,7 +516,7 @@
 </footer>
 
 <script>
-    // Variables globales específicas del módulo
+
     let paginaActualRegistros = 0;
     let totalPaginasRegistros = 0;
     const tamanoPaginaRegistros = 10;
@@ -547,7 +547,6 @@
     function verificarPermisos() {
         const role = localStorage.getItem("role");
 
-        // Todos los roles pueden ver registros
         if (role !== "ROLE_ADMINISTRADOR" && role !== "ROLE_REGISTRADOR" && role !== "ROLE_VISOR") {
             mostrarError("No tienes permisos para acceder a los registros.");
             setTimeout(() => {
@@ -1136,7 +1135,6 @@
         alert(mensaje);
     }
 
-    // Función para formatear fecha y hora
     function formatearFechaHora(fechaHoraString) {
         try {
             const fecha = new Date(fechaHoraString);

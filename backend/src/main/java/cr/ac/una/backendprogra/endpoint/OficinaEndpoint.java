@@ -30,6 +30,11 @@ public class OficinaEndpoint {
             oficinaType.setId(oficina.getIdOficina());
             oficinaType.setNombre(oficina.getNombre());
             oficinaType.setUbicacion(oficina.getUbicacion());
+
+            oficinaType.setLatitud(oficina.getLatitud());
+            oficinaType.setLongitud(oficina.getLongitud());
+            oficinaType.setCapacidadMaxima(oficina.getCapacidadMaxima());
+
             response.getOficinas().add(oficinaType);
         }
 

@@ -12,13 +12,16 @@ import lombok.Data;
         "idUsuario",
         "nombre",
         "email",
-        "direccion"
+        "direccion",
+        "fechaNacimiento",
+        "oficina"
 })
-
 public class PersonaType {
     private Integer id;
     private String idUsuario;
     private String nombre;
     private String email;
     private String direccion;
+    private String fechaNacimiento;
+    private OficinaType oficina;
 }

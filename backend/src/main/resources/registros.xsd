@@ -1,0 +1,33 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://soapcrud.una.ac.cr/ws/registro"
+           targetNamespace="http://soapcrud.una.ac.cr/ws/registro"
+           elementFormDefault="qualified">
+
+    <xs:element name="getRegistrosRequest" type="tns:GetRegistrosRequest"/>
+    <xs:element name="getRegistrosResponse" type="tns:GetRegistrosResponse"/>
+
+    <xs:complexType name="GetRegistrosRequest">
+        <xs:sequence/>
+    </xs:complexType>
+
+    <xs:complexType name="GetRegistrosResponse">
+        <xs:sequence>
+            <xs:element name="registro" type="tns:RegistroEntradaSalidaType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="RegistroEntradaSalidaType">
+        <xs:sequence>
+            <xs:element name="id" type="xs:long"/>
+            <xs:element name="personaNombre" type="xs:string" minOccurs="0"/>
+            <xs:element name="personaId" type="xs:int" minOccurs="0"/>
+            <xs:element name="oficinaNombre" type="xs:string" minOccurs="0"/>
+            <xs:element name="oficinaId" type="xs:int" minOccurs="0"/>
+            <xs:element name="tipoMovimiento" type="xs:string"/>
+            <xs:element name="fechaHora" type="xs:string"/>
+            <xs:element name="observaciones" type="xs:string" minOccurs="0"/>
+            <xs:element name="usuarioRegistro" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

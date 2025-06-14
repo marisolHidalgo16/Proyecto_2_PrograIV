@@ -23,7 +23,6 @@ public class WebServiceConfig extends WsConfigurerAdapter {
         return new ServletRegistrationBean<>(servlet, "/ws/*");
     }
 
-    // WSDL para Personas
     @Bean(name = "personas")
     public DefaultWsdl11Definition personasWsdl11Definition(XsdSchema personaSchema) {
         DefaultWsdl11Definition wsdl11Definition = new DefaultWsdl11Definition();
@@ -39,7 +38,6 @@ public class WebServiceConfig extends WsConfigurerAdapter {
         return new SimpleXsdSchema(new org.springframework.core.io.ClassPathResource("personas.xsd"));
     }
 
-    // WSDL para Oficinas
     @Bean(name = "oficinas")
     public DefaultWsdl11Definition oficinasWsdl11Definition(XsdSchema oficinaSchema) {
         DefaultWsdl11Definition wsdl11Definition = new DefaultWsdl11Definition();
@@ -53,5 +51,21 @@ public class WebServiceConfig extends WsConfigurerAdapter {
     @Bean
     public XsdSchema oficinaSchema() {
         return new SimpleXsdSchema(new org.springframework.core.io.ClassPathResource("oficinas.xsd"));
+    }
+
+
+    @Bean(name = "registros")
+    public DefaultWsdl11Definition registrosWsdl11Definition(XsdSchema registroSchema) {
+        DefaultWsdl11Definition wsdl11Definition = new DefaultWsdl11Definition();
+        wsdl11Definition.setPortTypeName("RegistroPort");
+        wsdl11Definition.setLocationUri("/ws");
+        wsdl11Definition.setTargetNamespace("http://soapcrud.una.ac.cr/ws/registro");
+        wsdl11Definition.setSchema(registroSchema);
+        return wsdl11Definition;
+    }
+
+    @Bean
+    public XsdSchema registroSchema() {
+        return new SimpleXsdSchema(new org.springframework.core.io.ClassPathResource("registros.xsd"));
     }
 }

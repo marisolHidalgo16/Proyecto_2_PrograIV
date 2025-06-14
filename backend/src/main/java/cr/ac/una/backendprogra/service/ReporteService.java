@@ -116,7 +116,7 @@ public class ReporteService {
 
     public byte[] generarPDFRegistros(List<RegistroEntradaSalida> registros) throws IOException, DocumentException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Document document = new Document(PageSize.A4.rotate()); // Orientación horizontal
+        Document document = new Document(PageSize.A4.rotate());
         PdfWriter.getInstance(document, baos);
 
         document.open();
@@ -134,7 +134,7 @@ public class ReporteService {
         document.add(info);
         document.add(new Paragraph(" "));
 
-        PdfPTable table = new PdfPTable(7); // 7 columnas
+        PdfPTable table = new PdfPTable(7);
         table.setWidthPercentage(100);
 
         float[] columnWidths = {10f, 25f, 20f, 15f, 15f, 10f, 25f};
@@ -164,9 +164,9 @@ public class ReporteService {
 
             PdfPCell tipoCell = new PdfPCell(new Phrase(registro.getTipoMovimiento().toString(), cellFont));
             if (registro.getTipoMovimiento() == RegistroEntradaSalida.TipoMovimiento.ENTRADA) {
-                tipoCell.setBackgroundColor(new BaseColor(144, 238, 144)); // Verde claro
+                tipoCell.setBackgroundColor(new BaseColor(144, 238, 144));
             } else {
-                tipoCell.setBackgroundColor(new BaseColor(255, 182, 193)); // Rosa claro
+                tipoCell.setBackgroundColor(new BaseColor(255, 182, 193));
             }
             tipoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
             table.addCell(tipoCell);
